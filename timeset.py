@@ -10,12 +10,10 @@ import requests
 # 	dayOfWeek = datetime.datetime(time_tuple).isocalendar()[2]
 # 	pywin32.SetSystemTime(time_tuple[:2] + (dayOfWeek,) + time_tuple[2:])
 
-
 def _linux_set_time(time_tuple):
 	import ctypes
 	import ctypes.util
 	import time
-
 	# /usr/include/linux/time.h:
 	#
 	# define CLOCK_REALTIME                     0

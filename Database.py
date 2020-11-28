@@ -7,9 +7,18 @@ t = Timer(3600.0, timeset.settimeyandex())
 t.start()
 timeset.settimeyandex()
 
-database = {'data': {}}
+
+database = {
+	'data': {}
+}
 ips = {}
-servers_ips = {}
-logins = {'admin': md5('admin'.encode()).hexdigest()}
+server_ips = {}
+logins = {
+	'admin': md5('admin'.encode()).hexdigest()
+}
 stack = []
-server_logins = {'instance-1': md5('password'.encode()).hexdigest()}
+leader = {}
+server_logins = {
+	'instance-1': md5('password'.encode()).hexdigest()
+}
+leader_stack = []

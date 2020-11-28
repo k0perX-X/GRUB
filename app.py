@@ -17,7 +17,6 @@ from crypt import decrypt, encrypt
 app = Flask(__name__)
 logging.basicConfig(filename="log.txt", level=logging.WARNING)
 
-
 # Общение извне
 @app.route("/auth", methods=['POST'])
 def auth():
@@ -42,6 +41,10 @@ def auth():
 			logging.warning(time.ctime(time.time()) + " json recognition - json is not full - password")
 			return {"status": "error", "type error": "json recognition", "json recognition": "json is not full",
 					"json is not full": "password"}
+		if 'ip' not in r:
+			logging.warning(time.ctime(time.time()) + " json recognition - json is not full - ip")
+			return {"status": "error", "type error": "json recognition", "json recognition": "json is not full",
+					"json is not full": "password"}
 
 		# Проверка существования пользователя
 		if r['login'] not in logins:
@@ -54,7 +57,7 @@ def auth():
 			return {"status": "error", "type error": "wrong login/password"}
 
 		# Добавить в словарь
-		ips[r['login']] = request.remote_addr
+		ips[r['login']] = r['ip']
 
 		return {'system': 'auntified', "time": time.time()}
 	except Exception as e:
@@ -163,7 +166,7 @@ def delete():
 			return {"status": "error", "type error": "key"}
 
 		# удаление
-		#del database[r['dictionary name']][r['key']]
+		# del database[r['dictionary name']][r['key']]
 		stack.append([time.time(), 2, r['dictionary name'], r['key']])
 
 		return {"status": "done", "dictionary name": r['dictionary name'],
@@ -208,6 +211,10 @@ def server_auth():
 			logging.warning(time.ctime(time.time()) + " json recognition - json is not full - password")
 			return {"status": "error", "type error": "json recognition", "json recognition": "json is not full",
 					"json is not full": "password"}
+		if 'ip' not in r:
+			logging.warning(time.ctime(time.time()) + " json recognition - json is not full - ip")
+			return {"status": "error", "type error": "json recognition", "json recognition": "json is not full",
+					"json is not full": "password"}
 
 		# Проверка существования пользователя
 		if r['login'] not in server_logins:
@@ -220,7 +227,7 @@ def server_auth():
 			return {"status": "error", "type error": "wrong login/password"}
 
 		# Добавить в словарь
-		servers_ips[r['login']] = request.remote_addr
+		servers_ips[r['login']] = r['ip']
 
 		return {'system': 'auntified', 'ips': {**servers_ips}, "time": time.time()}
 	except Exception as e:

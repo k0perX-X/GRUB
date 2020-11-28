@@ -23,6 +23,7 @@ def auth():
 	# {
 	# 	'login': 'admin',
 	# 	'password': 'admin'
+	#   'ip': "0.0.0.0"
 	# }
 	try:
 		# преобразование json запроса
@@ -75,16 +76,20 @@ def add():
 	# 		2345: 2345
 	# 	}}
 	try:
-		# проверка аунтификации
-		if request.remote_addr not in ips.values():
-			return {"status": "error", "type error": "not autified"}
-
 		# преобразование json запроса
 		try:
 			r = json.loads(request.data)
 		except Exception as e:
 			logging.warning(time.ctime(time.time()) + " json recognition - not json")
 			return {"status": "error", "type error": "json recognition", "json recognition": "not json"}
+
+		# проверка аунтификации
+		if 'ip' not in r:
+			logging.warning(time.ctime(time.time()) + " json recognition - json is not full - ip")
+			return {"status": "error", "type error": "json recognition", "json recognition": "json is not full",
+					"json is not full": "password"}
+		if r['ip'] not in ips.values():
+			return {"status": "error", "type error": "not autified"}
 
 		# проверка dictionary name
 		if 'dictionary name' not in r:
@@ -140,16 +145,20 @@ def delete():
 	# 'key': '123'
 	# }
 	try:
-		# проверка аунтификации
-		if request.remote_addr not in ips.values():
-			return {"status": "error", "type error": "not autified"}
-
 		# преобразование json запроса
 		try:
 			r = json.loads(request.data)
 		except:
 			logging.warning(time.ctime(time.time()) + " json recognition - not json")
 			return {"status": "error", "type error": "json recognition", "json recognition": "not json"}
+
+		# проверка аунтификации
+		if 'ip' not in r:
+			logging.warning(time.ctime(time.time()) + " json recognition - json is not full - ip")
+			return {"status": "error", "type error": "json recognition", "json recognition": "json is not full",
+					"json is not full": "password"}
+		if r['ip'] not in ips.values():
+			return {"status": "error", "type error": "not autified"}
 
 		# проверка dictionary name
 		if 'dictionary name' not in r:

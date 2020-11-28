@@ -30,7 +30,7 @@ server_logins = {
 	'instance-1': md5('password'.encode()).hexdigest()
 }
 leader_stack = []
-time_last_change = 0.0
+time_last_change = time.time()
 
 
 # Коды операций
@@ -298,6 +298,7 @@ def func_follower():
 		r = json.loads(request.data)
 		r = decrypt(r['1'], eval(r['2']))
 		r = json.loads(r)
+		global time_last_change
 		if r['time'] > time_last_change:
 			global database
 			database = {**database, **r['database']}
@@ -309,6 +310,7 @@ def func_follower():
 			logins = {**logins, **r['logins']}
 			global server_logins
 			server_logins = {**server_logins, **r['server_logins']}
+			time_last_change = time.time()
 		send_stack()
 		return {"status": "ok"}
 	except Exception as e:

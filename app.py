@@ -1,13 +1,37 @@
 from flask import Flask, request
 import json
-from Database import database, ips, logins, stack, server_logins, server_ips, leader, leader_stack
 import logging
 import time
-from hashlib import md5
 import requests
 import traceback
 from crypt import decrypt, encrypt
 from random import randint
+from hashlib import md5
+import timeset
+from threading import Timer
+
+# Обновление времени
+t = Timer(3600.0, timeset.settimeyandex())
+t.start()
+timeset.settimeyandex()
+
+# data
+database = {
+	'data': {}
+}
+ips = {}
+server_ips = {}
+logins = {
+	'admin': md5('admin'.encode()).hexdigest()
+}
+stack = []
+leader = {}
+server_logins = {
+	'instance-1': md5('password'.encode()).hexdigest()
+}
+leader_stack = []
+time_last_change = 0.0
+
 
 # Коды операций
 # 1 - добавить элемент
@@ -16,6 +40,7 @@ from random import randint
 
 app = Flask(__name__)
 logging.basicConfig(filename="log.txt", level=logging.WARNING)
+
 
 
 # Общение извне
@@ -273,16 +298,17 @@ def func_follower():
 		r = json.loads(request.data)
 		r = decrypt(r['1'], eval(r['2']))
 		r = json.loads(r)
-		global database
-		database = {**database, **r['database']}
-		global server_ips
-		server_ips = {**server_ips, **r['servers_ips']}
-		global ips
-		ips = {**ips, **r['ips']}
-		global logins
-		logins = {**logins, **r['logins']}
-		global server_logins
-		server_logins = {**server_logins, **r['server_logins']}
+		if r['time'] > time_last_change:
+			global database
+			database = {**database, **r['database']}
+			global server_ips
+			server_ips = {**server_ips, **r['servers_ips']}
+			global ips
+			ips = {**ips, **r['ips']}
+			global logins
+			logins = {**logins, **r['logins']}
+			global server_logins
+			server_logins = {**server_logins, **r['server_logins']}
 		send_stack()
 		return {"status": "ok"}
 	except Exception as e:
@@ -319,7 +345,8 @@ def send_data():
 			'server_ips': server_ips,
 			'ips': ips,
 			'logins': logins,
-			'server_logins': server_logins
+			'server_logins': server_logins,
+			'time': time.time()
 		}
 		x = randint(0, 999)
 		for i in server_ips.values():

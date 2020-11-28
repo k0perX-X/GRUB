@@ -1,17 +1,30 @@
 from flask import Flask, request
 import json
-from Database import database, ips, logins
+from Database import database, ips, logins, stack, server_logins, servers_ips
 import logging
 import time
 from hashlib import md5
 import requests
+import traceback
+from crypt import decrypt, encrypt
+
+
+# Коды операций
+# 1 - добавить элемент
+# 2 - удалить элемент
+
 
 app = Flask(__name__)
 logging.basicConfig(filename="log.txt", level=logging.WARNING)
 
 
+# Общение извне
 @app.route("/auth", methods=['POST'])
 def auth():
+	# {
+	# 	'login': 'admin',
+	# 	'password': 'admin'
+	# }
 	try:
 		# преобразование json запроса
 		try:
@@ -43,14 +56,21 @@ def auth():
 		# Добавить в словарь
 		ips[r['login']] = request.remote_addr
 
-		return {'system': 'auntified', 'ips': {**ips}, "time": time.time()}
+		return {'system': 'auntified', "time": time.time()}
 	except Exception as e:
-		logging.error(time.ctime(time.time()) + " " + str(e))
+		logging.error(time.ctime(time.time()) + " " + traceback.format_exc())
 		return {"status": "error", "type error": "unknown error"}
 
 
 @app.route("/add", methods=['POST'])
 def add():
+	# {
+	# 	'dictionary name': 'data',
+	# 	'amount of elements': 2,
+	# 	'values': {
+	# 		'123': 123,
+	# 		2345: 2345
+	# 	}}
 	try:
 		# проверка аунтификации
 		if request.remote_addr not in ips.values():
@@ -89,7 +109,8 @@ def add():
 			return {"status": "error", "type error": "values - not a dict"}
 
 		# Приравнивание
-		database[r['dictionary name']] = {**database[r['dictionary name']], **r['values']}
+		# database[r['dictionary name']] = {**database[r['dictionary name']], **r['values']}
+		stack.append([time.time(), 1, r['values']])
 
 		# Сообщить другим серверам
 
@@ -97,7 +118,7 @@ def add():
 		return {"status": "done", "dictionary name": r['dictionary name'],
 				"updated dictionary": database[r['dictionary name']], "time": time.time()}
 	except Exception as e:
-		logging.error(time.ctime(time.time()) + " " + str(e))
+		logging.error(time.ctime(time.time()) + " " + traceback.format_exc())
 		return {"status": "error", "type error": "unknown error"}
 
 
@@ -111,6 +132,10 @@ def data():
 
 @app.route("/delete", methods=['POST'])
 def delete():
+	# }
+	# 'dictionary name': 'data',
+	# 'key': '123'
+	# }
 	try:
 		# проверка аунтификации
 		if request.remote_addr not in ips.values():
@@ -138,13 +163,68 @@ def delete():
 			return {"status": "error", "type error": "key"}
 
 		# удаление
-		del database[r['dictionary name']][r['key']]
-		unixtime = requests.get('http://worldtimeapi.org/api/timezone/Europe/London').json()["unixtime"]
+		#del database[r['dictionary name']][r['key']]
+		stack.append([time.time(), 2, r['dictionary name'], r['key']])
 
 		return {"status": "done", "dictionary name": r['dictionary name'],
 				"updated dictionary": database[r['dictionary name']], "time": time.time()}
 	except Exception as e:
-		logging.error(time.ctime(time.time()) + " " + str(e))
+		logging.error(time.ctime(time.time()) + " " + traceback.format_exc())
+		return {"status": "error", "type error": "unknown error"}
+
+
+# Общение внутри
+# Ответы
+@app.route("/servers/auth", methods=['POST'])
+def server_auth():
+	try:
+		# преобразование json запроса
+		try:
+			r = json.loads(request.data)
+		except Exception as e:
+			logging.warning(time.ctime(time.time()) + " json recognition - not json")
+			return {"status": "error", "type error": "json recognition", "json recognition": "not json"}
+
+		# encrypt
+		try:
+			r = decrypt(r['1'], eval(r['2']))
+		except Exception as e:
+			logging.warning(time.ctime(time.time()) + " json recognition - encode")
+			return {"status": "error", "type error": "json recognition", "json recognition": "encode"}
+
+		# преобразование json запроса
+		try:
+			r = json.loads(r)
+		except Exception as e:
+			logging.warning(time.ctime(time.time()) + " json recognition - not json")
+			return {"status": "error", "type error": "json recognition", "json recognition": "not json"}
+
+		# Проверка полноты json
+		if 'login' not in r:
+			logging.warning(time.ctime(time.time()) + " json recognition - json is not full - login")
+			return {"status": "error", "type error": "json recognition", "json recognition": "json is not full",
+					"json is not full": "login"}
+		if 'password' not in r:
+			logging.warning(time.ctime(time.time()) + " json recognition - json is not full - password")
+			return {"status": "error", "type error": "json recognition", "json recognition": "json is not full",
+					"json is not full": "password"}
+
+		# Проверка существования пользователя
+		if r['login'] not in server_logins:
+			logging.warning(time.ctime(time.time()) + " wrong login")
+			return {"status": "error", "type error": "wrong login/password"}
+
+		# Проверка пароля
+		if md5(r['password'].encode()).hexdigest() != server_logins[r['login']]:
+			logging.warning(time.ctime(time.time()) + " wrong password")
+			return {"status": "error", "type error": "wrong login/password"}
+
+		# Добавить в словарь
+		servers_ips[r['login']] = request.remote_addr
+
+		return {'system': 'auntified', 'ips': {**servers_ips}, "time": time.time()}
+	except Exception as e:
+		logging.error(time.ctime(time.time()) + " " + traceback.format_exc())
 		return {"status": "error", "type error": "unknown error"}
 
 

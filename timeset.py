@@ -55,7 +55,7 @@ def settime(unixtime):
 				  a[5],  # Second
 				  unixtime % 1000,  # Millisecond
 				  )
-	if sys.platform == 'linux2' or sys.platform == 'linux':
+	if sys.platform == 'linux':
 		_linux_set_time(time_tuple)
 	# elif sys.platform == 'win32':
 	# 	_win_set_time(time_tuple)

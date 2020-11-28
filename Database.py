@@ -9,4 +9,7 @@ timeset.settimeyandex()
 
 database = {'data': {}}
 ips = {}
+servers_ips = {}
 logins = {'admin': md5('admin'.encode()).hexdigest()}
+stack = []
+server_logins = {'instance-1': md5('password'.encode()).hexdigest()}

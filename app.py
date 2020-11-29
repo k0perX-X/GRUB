@@ -19,23 +19,26 @@ timeset.settimeyandex()
 database = {
 	'data': {}
 }
-ips = {}
-server_ips = {}
+ips = {}  # аунтифицированные пользователи
+server_ips = {}  # аунтифицированные сервера
 logins = {
 	'admin': md5('admin'.encode()).hexdigest()
-}
-stack = []
-leader = {}
+}  # пользовательская аутификация
+stack = []  # стек полученных задач
+leader = {}  # логин и ip лидера
 server_logins = {
 	'instance-1': md5('password'.encode()).hexdigest()
-}
-leader_stack = []
-time_last_change = time.time()
+}  # серверная аунтификация
+leader_stack = []  # стек лидера
+time_last_change = time.time()  # время поледнего изменения в database
+myip = requests.get('https://api.ipify.org?format=json').json()['ip']
 
 
 # Коды операций
-# 1 - добавить элемент
+# 1 - добавить/изменить элемент(-ы)
 # 2 - удалить элемент
+# 3 - аунтификация пользователя
+# stack - массив масиивов [[время, код операции, данные1, данные2, ...], ...]
 
 
 app = Flask(__name__)
@@ -84,7 +87,8 @@ def auth():
 			return {"status": "error", "type error": "wrong login/password"}
 
 		# Добавить в словарь
-		ips[r['login']] = r['ip']
+		# ips[r['login']] = r['ip']
+		stack.append([time.time(), 3, r['login'], r['ip']])
 
 		return {'system': 'ok', "time": time.time()}
 	except Exception as e:
@@ -272,7 +276,14 @@ def server_auth():
 			return {"status": "error", "type error": "wrong login/password"}
 
 		# Добавить в словарь
-		server_ips[r['login']] = r['ip']
+		if myip != leader['ip']:
+			x = randint(0, 999)
+			requests.post(f"https://{leader['ip']}/servers/server_auth", verify=False, json={
+				'1': x,
+				'2': str(encrypt(x, json.dumps({'login': r['login'], 'ip': r['ip']}).encode('utf8')))
+			}).json()
+		else:
+			server_ips[r['login']] = r['ip']
 
 		return {'status': 'auntified', 'ips': {**server_ips}, "time": time.time(), 'leader': {**leader}}
 	except Exception as e:
@@ -299,27 +310,42 @@ def func_follower():
 		r = decrypt(r['1'], eval(r['2']))
 		r = json.loads(r)
 		global time_last_change
-		if r['time'] > time_last_change:
+		if r['time'] > time_last_change and r['ip'] == leader['ip']:
 			global database
-			database = {**database, **r['database']}
+			database = r['database']
 			global server_ips
-			server_ips = {**server_ips, **r['servers_ips']}
+			server_ips = r['servers_ips']
 			global ips
-			ips = {**ips, **r['ips']}
+			ips = r['ips']
 			global logins
-			logins = {**logins, **r['logins']}
+			logins = r['logins']
 			global server_logins
-			server_logins = {**server_logins, **r['server_logins']}
+			server_logins = r['server_logins']
 			time_last_change = time.time()
-		send_stack()
+			send_stack()
 		return {"status": "ok"}
 	except Exception as e:
 		logging.error(time.ctime(time.time()) + " " + traceback.format_exc())
 		return {"status": "error", "type error": "unknown error"}
 
 
+@app.route('/servers/server_auth', methods=['POST'])
+def leader_auth():
+	try:
+		r = json.loads(request.data)
+		r = decrypt(r['1'], eval(r['2']))
+		r = json.loads(r)
+		server_ips[r['login']] = r['ip']
+		return {'status': 'ok'}
+	except Exception as e:
+		logging.error(time.ctime(time.time()) + " " + traceback.format_exc())
+		return {"status": "error", "type error": "unknown error"}
+
+
+# функция фоловера - отправка стека
 def send_stack():
 	try:
+		global stack
 		x = randint(0, 999)
 		r = requests.post(f"https://{leader['ip']}/servers/leader", verify=False, json={
 			'1': x,
@@ -327,28 +353,37 @@ def send_stack():
 		}).json()
 		if r['status'] != 'ok':
 			raise Exception
+		stack = []  # возможна потеря данных
 	except Exception as e:
 		#
 		# НЕ ДОДЕЛАНО!!!!!!!!!!!!!!!!!!!!
 		#
-		logging.warning()
+		logging.warning(traceback.format_exc())
 
 
+# функция лидера - отправка database
 def send_data():
 	try:
+		global stack
+		global leader_stack
+		leader_stack += stack
+		stack = []  # может быть потеря данных
 		leader_stack.sort(key=lambda y: y[0])
 		for i in leader_stack:
 			if i[1] == 1:
 				database[i[2]] = {**database[i[2]], **i[3]}
 			elif i[1] == 2:
-				del database[i[2]][i[3]]
+				if i[2] in database:
+					if i[3] in database[i[2]]:
+						del database[i[2]][i[3]]
 		j = {
 			'database': database,
 			'server_ips': server_ips,
 			'ips': ips,
 			'logins': logins,
 			'server_logins': server_logins,
-			'time': time.time()
+			'time': time.time(),
+			'ip': myip
 		}
 		x = randint(0, 999)
 		for i in server_ips.values():
@@ -364,12 +399,12 @@ def send_data():
 					#
 					# НЕ ДОДЕЛАНО!!!!!!!!!!!!!!!!!!!!
 					#
-					logging.warning()
+					logging.warning(traceback.format_exc())
 	except Exception as e:
 		#
 		# НЕ ДОДЕЛАНО!!!!!!!!!!!!!!!!!!!!
 		#
-		logging.warning()
+		logging.warning(traceback.format_exc())
 
 
 if __name__ == '__main__':

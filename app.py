@@ -5,406 +5,196 @@ import time
 import requests
 import traceback
 from crypt import decrypt, encrypt
-from random import randint
+from random import randint, choice
 from hashlib import md5
 import timeset
 from threading import Timer
 
-# Обновление времени
-t = Timer(3600.0, timeset.settimeyandex())
-t.start()
-timeset.settimeyandex()
 
 # data
+stack = []
+leader = ''
+server_ips = {}
 database = {
-	'data': {}
+
 }
-ips = {}  # аунтифицированные пользователи
-server_ips = {}  # аунтифицированные сервера
-logins = {
-	'admin': md5('admin'.encode()).hexdigest()
-}  # пользовательская аутификация
-stack = []  # стек полученных задач
-leader = {}  # логин и ip лидера
-server_logins = {
-	'instance-1': md5('password'.encode()).hexdigest()
-}  # серверная аунтификация
-leader_stack = []  # стек лидера
-time_last_change = time.time()  # время поледнего изменения в database
+user_logins = {
+
+}
 myip = requests.get('https://api.ipify.org?format=json').json()['ip']
-
-
-# Коды операций
-# 1 - добавить/изменить элемент(-ы)
-# 2 - удалить элемент
-# 3 - аунтификация пользователя
-# stack - массив масиивов [[время, код операции, данные1, данные2, ...], ...]
+cycle_time = 1
+last_time_elections = time.time()
+votes = {}
 
 
 app = Flask(__name__)
 logging.basicConfig(filename="log.txt", level=logging.WARNING)
 
 
-
-# Общение извне
-@app.route("/auth", methods=['POST'])
-def auth():
-	# {
-	# 	'login': 'admin',
-	# 	'password': 'admin'
-	#   'ip': "0.0.0.0"
-	# }
-	try:
-		# преобразование json запроса
+# Функции голсования
+def vote():
+	# рассылка голоса
+	my_vote = choice(server_ips.values())
+	j = {
+		'ip': myip,
+		'vote': my_vote
+	}
+	res = []
+	for ip in server_ips.values():
+		x = randint(0, 999)
 		try:
-			r = json.loads(request.data)
-		except Exception as e:
-			logging.warning(time.ctime(time.time()) + " json recognition - not json")
-			return {"status": "error", "type error": "json recognition", "json recognition": "not json"}
+			r = requests.post(f"https://{ip}/servers/votes", verify=False, json={
+				'1': x,
+				'2': str(encrypt(x, json.dumps(j).encode('utf8')))
+			}).json()
+			res.append(r)
+		except:
+			pass
 
-		# Проверка полноты json
-		if 'login' not in r:
-			logging.warning(time.ctime(time.time()) + " json recognition - json is not full - login")
-			return {"status": "error", "type error": "json recognition", "json recognition": "json is not full",
-					"json is not full": "login"}
-		if 'password' not in r:
-			logging.warning(time.ctime(time.time()) + " json recognition - json is not full - password")
-			return {"status": "error", "type error": "json recognition", "json recognition": "json is not full",
-					"json is not full": "password"}
-		if 'ip' not in r:
-			logging.warning(time.ctime(time.time()) + " json recognition - json is not full - ip")
-			return {"status": "error", "type error": "json recognition", "json recognition": "json is not full",
-					"json is not full": "password"}
+	# проверка на ошибку голосования
+	for i in res:
+		if i['status'] == 'leader':
+			global leader
+			leader = i['leader']
+			# зупустить новый таймер выборов
+			return
 
-		# Проверка существования пользователя
-		if r['login'] not in logins:
-			logging.warning(time.ctime(time.time()) + " wrong login")
-			return {"status": "error", "type error": "wrong login/password"}
+	time.sleep(3 * cycle_time)
+	new_votes = {}
+	votes[myip] = my_vote
 
-		# Проверка пароля
-		if md5(r['password'].encode()).hexdigest() != logins[r['login']]:
-			logging.warning(time.ctime(time.time()) + " wrong password")
-			return {"status": "error", "type error": "wrong login/password"}
+	# подсчёт голосов
+	for v in votes.values():
+		if v not in new_votes:
+			new_votes[v] = 1
+		else:
+			new_votes[v] += 1
+	max_ip = []
+	max_value = 0
+	for i in new_votes:
+		if new_votes[i] > max_value:
+			max_value = new_votes[i]
+			max_ip = [i]
+		elif new_votes[i] == max_value:
+			max_ip.append(i)
 
-		# Добавить в словарь
-		# ips[r['login']] = r['ip']
-		stack.append([time.time(), 3, r['login'], r['ip']])
+	# проверка правильности голосования
+	if len(max_ip) > 1:
+		time.sleep(cycle_time)
+		vote()
 
-		return {'system': 'ok', "time": time.time()}
-	except Exception as e:
-		logging.error(time.ctime(time.time()) + " " + traceback.format_exc())
-		return {"status": "error", "type error": "unknown error"}
+	# подведение результатов
+	if max_ip[0] == myip:
 
+		# если выбрали меня
+		for ip in server_ips.values():
+			x = randint(0, 999)
+			try:
+				r = requests.post(f"https://{ip}/servers/new_leader", verify=False, json={
+					'1': x,
+					'2': str(encrypt(x, json.dumps({
+						'status': 'ok',
+						'ip': myip
+					}).encode('utf8')))
+				}).json()
+				res.append(r)
+			except:
+				pass
+		time.sleep(3 * cycle_time)
+		# запуск циклов
 
-@app.route("/add", methods=['POST'])
-def add():
-	# {
-	# 	'dictionary name': 'data',
-	# 	'amount of elements': 2,
-	# 	'values': {
-	# 		'123': 123,
-	# 		2345: 2345
-	# 	}}
-	try:
-		# преобразование json запроса
-		try:
-			r = json.loads(request.data)
-		except Exception as e:
-			logging.warning(time.ctime(time.time()) + " json recognition - not json")
-			return {"status": "error", "type error": "json recognition", "json recognition": "not json"}
-
-		# проверка аунтификации
-		if 'ip' not in r:
-			logging.warning(time.ctime(time.time()) + " json recognition - json is not full - ip")
-			return {"status": "error", "type error": "json recognition", "json recognition": "json is not full",
-					"json is not full": "password"}
-		if r['ip'] not in ips.values():
-			return {"status": "error", "type error": "not autified"}
-
-		# проверка dictionary name
-		if 'dictionary name' not in r:
-			logging.warning(time.ctime(time.time()) + " json recognition - json is not full - dictionary name")
-			return {"status": "error", "type error": "json recognition", "json recognition": "json is not full",
-					"json is not full": "dictionary name"}
-		if r['dictionary name'] not in database:
-			logging.warning(time.ctime(time.time()) + " dictionary name - dictionary does not exist")
-			return {"status": "error", "type error": "dictionary does not exist"}
-
-		# проверка значений
-		if 'amount of elements' not in r:
-			logging.warning(time.ctime(time.time()) + " json recognition - json is not full - amount of elements")
-			return {"status": "error", "type error": "json recognition", "json recognition": "json is not full",
-					"json is not full": "amount of elements"}
-		if type(r['amount of elements']) != int:
-			logging.warning(time.ctime(time.time()) + " amount of elements - not a number")
-			return {"status": "error", "type error": "amount of elements - not a number"}
-		if 'values' not in r:
-			logging.warning(time.ctime(time.time()) + " json recognition - json is not full - values")
-			return {"status": "error", "type error": "json recognition", "json recognition": "json is not full",
-					"json is not full": "values"}
-		if type(r['values']) != dict:
-			logging.warning(time.ctime(time.time()) + " values - not a dict")
-			return {"status": "error", "type error": "values - not a dict"}
-
-		# Приравнивание
-		#database[r['dictionary name']] = {**database[r['dictionary name']], **r['values']}
-		stack.append([time.time(), 1, r['dictionary name'], r['values']])
-
-		# Сообщить другим серверам
-
-		# Вывод
-		return {"status": "ok", "dictionary name": r['dictionary name'], "time": time.time()}
-	except Exception as e:
-		logging.error(time.ctime(time.time()) + " " + traceback.format_exc())
-		return {"status": "error", "type error": "unknown error"}
+	else:
+		# если выбрали не меня
+		time.sleep(3 * cycle_time)
+		if time.time() - 4 * cycle_time >= last_time_elections:
+			vote()
+		else:
+			global last_time_elections
+			last_time_elections = time.time()
+			# запуск таймера на выборы
 
 
-@app.route("/databases", methods=['POST'])
-def data():
+@app.route('/servers/new_leader', methods=['POST'])
+def new_leader():
 	# преобразование json запроса
 	try:
 		r = json.loads(request.data)
 	except Exception as e:
-		logging.warning(time.ctime(time.time()) + " json recognition - not json")
+		logging.warning(time.ctime(time.time()) + "votes - json recognition - not json")
 		return {"status": "error", "type error": "json recognition", "json recognition": "not json"}
 
-	# проверка аунтификации
-	if 'ip' not in r:
-		logging.warning(time.ctime(time.time()) + " json recognition - json is not full - ip")
-		return {"status": "error", "type error": "json recognition", "json recognition": "json is not full",
-				"json is not full": "password"}
-	if r['ip'] not in ips.values():
-		return {"status": "error", "type error": "not autified"}
-
-	return {**database, "time": time.time(), 'status': 'ok'}
-
-
-@app.route("/delete", methods=['POST'])
-def delete():
-	# }
-	# 'dictionary name': 'data',
-	# 'key': '123'
-	# }
+	# encrypt
 	try:
-		# преобразование json запроса
-		try:
-			r = json.loads(request.data)
-		except:
-			logging.warning(time.ctime(time.time()) + " json recognition - not json")
-			return {"status": "error", "type error": "json recognition", "json recognition": "not json"}
-
-		# проверка аунтификации
-		if 'ip' not in r:
-			logging.warning(time.ctime(time.time()) + " json recognition - json is not full - ip")
-			return {"status": "error", "type error": "json recognition", "json recognition": "json is not full",
-					"json is not full": "password"}
-		if r['ip'] not in ips.values():
-			return {"status": "error", "type error": "not autified"}
-
-		# проверка dictionary name
-		if 'dictionary name' not in r:
-			logging.warning(time.ctime(time.time()) + " json recognition - json is not full - dictionary name")
-			return {"status": "error", "type error": "json recognition", "json recognition": "json is not full",
-					"json is not full": "dictionary name"}
-		if r['dictionary name'] not in database:
-			logging.warning(time.ctime(time.time()) + " dictionary name - dictionary does not exist")
-			return {"status": "error", "type error": "dictionary does not exist"}
-
-		# проверка key
-		if r['key'] not in database[r['dictionary name']]:
-			logging.warning(time.ctime(time.time()) + " key - key does not exist")
-			return {"status": "error", "type error": "key"}
-
-		# удаление
-		# del database[r['dictionary name']][r['key']]
-		stack.append([time.time(), 2, r['dictionary name'], r['key']])
-
-		return {"status": "done", "dictionary name": r['dictionary name'], "time": time.time()}
+		r = decrypt(r['1'], eval(r['2']))
 	except Exception as e:
-		logging.error(time.ctime(time.time()) + " " + traceback.format_exc())
-		return {"status": "error", "type error": "unknown error"}
+		logging.warning(time.ctime(time.time()) + "votes - json recognition - encode")
+		return {"status": "error", "type error": "json recognition", "json recognition": "encode"}
 
-
-# Общение внутри
-# Ответы
-@app.route("/servers/auth", methods=['POST'])
-def server_auth():
+	# преобразование json запроса
 	try:
-		# преобразование json запроса
-		try:
-			r = json.loads(request.data)
-		except Exception as e:
-			logging.warning(time.ctime(time.time()) + " json recognition - not json")
-			return {"status": "error", "type error": "json recognition", "json recognition": "not json"}
-
-		# encrypt
-		try:
-			r = decrypt(r['1'], eval(r['2']))
-		except Exception as e:
-			logging.warning(time.ctime(time.time()) + " json recognition - encode")
-			return {"status": "error", "type error": "json recognition", "json recognition": "encode"}
-
-		# преобразование json запроса
-		try:
-			r = json.loads(r)
-		except Exception as e:
-			logging.warning(time.ctime(time.time()) + " json recognition - not json")
-			return {"status": "error", "type error": "json recognition", "json recognition": "not json"}
-
-		# Проверка полноты json
-		if 'login' not in r:
-			logging.warning(time.ctime(time.time()) + " json recognition - json is not full - login")
-			return {"status": "error", "type error": "json recognition", "json recognition": "json is not full",
-					"json is not full": "login"}
-		if 'password' not in r:
-			logging.warning(time.ctime(time.time()) + " json recognition - json is not full - password")
-			return {"status": "error", "type error": "json recognition", "json recognition": "json is not full",
-					"json is not full": "password"}
-		if 'ip' not in r:
-			logging.warning(time.ctime(time.time()) + " json recognition - json is not full - ip")
-			return {"status": "error", "type error": "json recognition", "json recognition": "json is not full",
-					"json is not full": "password"}
-
-		# Проверка существования пользователя
-		if r['login'] not in server_logins:
-			logging.warning(time.ctime(time.time()) + " wrong login")
-			return {"status": "error", "type error": "wrong login/password"}
-
-		# Проверка пароля
-		if md5(r['password'].encode()).hexdigest() != server_logins[r['login']]:
-			logging.warning(time.ctime(time.time()) + " wrong password")
-			return {"status": "error", "type error": "wrong login/password"}
-
-		# Добавить в словарь
-		if myip != leader['ip']:
-			x = randint(0, 999)
-			requests.post(f"https://{leader['ip']}/servers/server_auth", verify=False, json={
-				'1': x,
-				'2': str(encrypt(x, json.dumps({'login': r['login'], 'ip': r['ip']}).encode('utf8')))
-			}).json()
-		else:
-			server_ips[r['login']] = r['ip']
-
-		return {'status': 'auntified', 'ips': {**server_ips}, "time": time.time(), 'leader': {**leader}}
+		r = json.loads(r)
 	except Exception as e:
-		logging.error(time.ctime(time.time()) + " " + traceback.format_exc())
-		return {"status": "error", "type error": "unknown error"}
+		logging.warning(time.ctime(time.time()) + "votes - json recognition - not json")
+		return {"status": "error", "type error": "json recognition", "json recognition": "not json"}
+
+	global leader
+	leader = r['ip']
+
+	global last_time_elections
+	last_time_elections = time.time()
+	return {'status': 'ok'}
 
 
-# Лидер ответ на stack
-@app.route('/servers/leader', methods=['POST'])
-def func_leader():
-	r = json.loads(request.data)
-	r = decrypt(r['1'], eval(r['2']))
-	r = json.loads(r)
-	global leader_stack
-	leader_stack += r
-	return {"status": "ok"}
-
-
-# Фоловер ответ на database
-@app.route("/servers/follower", methods=['POST'])
-def func_follower():
+@app.route('/servers/votes', methods=['POST'])
+def votes():
+	# преобразование json запроса
 	try:
 		r = json.loads(request.data)
+	except Exception as e:
+		logging.warning(time.ctime(time.time()) + "votes - json recognition - not json")
+		return {"status": "error", "type error": "json recognition", "json recognition": "not json"}
+
+	# encrypt
+	try:
 		r = decrypt(r['1'], eval(r['2']))
+	except Exception as e:
+		logging.warning(time.ctime(time.time()) + "votes - json recognition - encode")
+		return {"status": "error", "type error": "json recognition", "json recognition": "encode"}
+
+	# преобразование json запроса
+	try:
 		r = json.loads(r)
-		global time_last_change
-		if r['time'] > time_last_change and r['ip'] == leader['ip']:
-			global database
-			database = r['database']
-			global server_ips
-			server_ips = r['servers_ips']
-			global ips
-			ips = r['ips']
-			global logins
-			logins = r['logins']
-			global server_logins
-			server_logins = r['server_logins']
-			time_last_change = time.time()
-			send_stack()
-		return {"status": "ok"}
 	except Exception as e:
-		logging.error(time.ctime(time.time()) + " " + traceback.format_exc())
-		return {"status": "error", "type error": "unknown error"}
+		logging.warning(time.ctime(time.time()) + "votes - json recognition - not json")
+		return {"status": "error", "type error": "json recognition", "json recognition": "not json"}
+
+	if time.time() - 3 * cycle_time < last_time_elections:
+		return {'status': 'leader', 'leader': leader}
+
+	votes[r['ip']] = r['vote']
+	return {'status': 'ok'}
 
 
-@app.route('/servers/server_auth', methods=['POST'])
-def leader_auth():
-	try:
-		r = json.loads(request.data)
-		r = decrypt(r['1'], eval(r['2']))
-		r = json.loads(r)
-		server_ips[r['login']] = r['ip']
-		return {'status': 'ok'}
-	except Exception as e:
-		logging.error(time.ctime(time.time()) + " " + traceback.format_exc())
-		return {"status": "error", "type error": "unknown error"}
+@app.route('/test', methods=['GET'])
+def test():
+	return {'1': '1'}
 
 
-# функция фоловера - отправка стека
-def send_stack():
-	try:
-		global stack
-		x = randint(0, 999)
-		r = requests.post(f"https://{leader['ip']}/servers/leader", verify=False, json={
-			'1': x,
-			'2': str(encrypt(x, json.dumps(stack).encode('utf8')))
-		}).json()
-		if r['status'] != 'ok':
-			raise Exception
-		stack = []  # возможна потеря данных
-	except Exception as e:
-		#
-		# НЕ ДОДЕЛАНО!!!!!!!!!!!!!!!!!!!!
-		#
-		logging.warning(traceback.format_exc())
+# Коды операций
+# 1 - добавить/изменить элемент(-ы)
+# 2 - удалить элемент
+# stack - массив масиивов [[время, код операции, данные1, данные2, ...], ...]
 
 
-# функция лидера - отправка database
-def send_data():
-	try:
-		global stack
-		global leader_stack
-		leader_stack += stack
-		stack = []  # может быть потеря данных
-		leader_stack.sort(key=lambda y: y[0])
-		for i in leader_stack:
-			if i[1] == 1:
-				database[i[2]] = {**database[i[2]], **i[3]}
-			elif i[1] == 2:
-				if i[2] in database:
-					if i[3] in database[i[2]]:
-						del database[i[2]][i[3]]
-		j = {
-			'database': database,
-			'server_ips': server_ips,
-			'ips': ips,
-			'logins': logins,
-			'server_logins': server_logins,
-			'time': time.time(),
-			'ip': myip
-		}
-		x = randint(0, 999)
-		for i in server_ips.values():
-			if i != leader['ip']:
-				try:
-					r = requests.post(f"https://{i}/servers/follower", verify=False, json={
-						'1': x,
-						'2': str(encrypt(x, json.dumps(j).encode('utf8')))
-					}).json()
-					if r['status'] != 'ok':
-						raise Exception
-				except Exception as e:
-					#
-					# НЕ ДОДЕЛАНО!!!!!!!!!!!!!!!!!!!!
-					#
-					logging.warning(traceback.format_exc())
-	except Exception as e:
-		#
-		# НЕ ДОДЕЛАНО!!!!!!!!!!!!!!!!!!!!
-		#
-		logging.warning(traceback.format_exc())
+# Запуск таймеров
+
+# Обновление времени
+t = Timer(3600.0, timeset.settimeyandex)
+t.start()
+timeset.settimeyandex()
+
+# Таймер голосования
+t = Timer(6 * cycle_time, vote)
 
 
 if __name__ == '__main__':

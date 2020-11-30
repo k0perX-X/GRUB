@@ -1,6 +1,7 @@
 import sys
 import datetime
 import requests
+from threading import Timer
 
 
 # def _win_set_time(time_tuple):
@@ -43,23 +44,27 @@ def _linux_set_time(time_tuple):
 def settime(unixtime):
 	from datetime import datetime
 	a = []
-	for i in datetime.timetuple(datetime.fromtimestamp(float(unixtime) / 100)):
+	for i in datetime.timetuple(datetime.fromtimestamp(float(unixtime))):
 		a.append(i)
-	time_tuple = (a[0],  # Year
-				  a[1],  # Month
-				  a[2],  # Day
-				  a[3],  # Hour
-				  a[4],  # Minute
-				  a[5],  # Second
-				  unixtime % 1000,  # Millisecond
-				  )
+	time_tuple = (
+		a[0],  # Year
+		a[1],  # Month
+		a[2],  # Day
+		a[3],  # Hour
+		a[4],  # Minute
+		a[5],  # Second
+		int(unixtime * 1000 % 1000),  # Millisecond
+		)
+	print(time_tuple)
 	if sys.platform == 'linux':
 		_linux_set_time(time_tuple)
 	# elif sys.platform == 'win32':
 	# 	_win_set_time(time_tuple)
 
-def settimeyandex():
-	settime(requests.get('https://yandex.com/time/sync.json').json()["time"])
 
-# if __name__ == "__main__":
-# 	settimeyandex()
+def settimeyandex():
+	settime(float(requests.get('https://yandex.com/time/sync.json').json()["time"]) / 1000)
+
+
+if __name__ == "__main__":
+	settimeyandex()

@@ -41,7 +41,7 @@ def _linux_set_time(time_tuple):
 	librt.clock_settime(CLOCK_REALTIME, ctypes.byref(ts))
 
 
-def settime(unixtime):
+def timeset(unixtime):
 	from datetime import datetime
 	a = []
 	for i in datetime.timetuple(datetime.fromtimestamp(float(unixtime))):
@@ -63,7 +63,7 @@ def settime(unixtime):
 
 
 def settimeyandex():
-	settime(float(requests.get('https://yandex.com/time/sync.json').json()["time"]) / 1000)
+	timeset(float(requests.get('https://yandex.com/time/sync.json').json()["time"]) / 1000)
 
 
 if __name__ == "__main__":

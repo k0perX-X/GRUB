@@ -4,9 +4,8 @@ import logging
 import time
 import requests
 import traceback
-from crypt import decrypt, encrypt, user_logins
+from crypt import decrypt, encrypt, user_logins, login
 from random import randint, choice
-from hashlib import md5
 import timeset
 from threading import Timer
 
@@ -14,9 +13,14 @@ from threading import Timer
 # data
 stack = []
 leader = ''
-server_ips = {}
+server_ips = {
+	login: requests.get('https://api.ipify.org?format=json').json()['ip']
+}
 database = {
-
+	'data': {
+		'132': 123,
+		'привет': 'мир'
+	}
 }
 myip = requests.get('https://api.ipify.org?format=json').json()['ip']
 cycle_time = 1
@@ -28,10 +32,14 @@ app = Flask(__name__)
 logging.basicConfig(filename="log.txt", level=logging.WARNING)
 
 
-# Функции голсования
+# Функции голосования
 def vote():
+	global last_time_elections
+	global ballot
+	global leader
+
 	# рассылка голоса
-	my_vote = choice(server_ips.values())
+	my_vote = choice([*server_ips.values()])
 	j = {
 		'ip': myip,
 		'vote': my_vote
@@ -39,21 +47,20 @@ def vote():
 	res = []
 	for ip in server_ips.values():
 		x = randint(0, 999)
-		try:
-			r = requests.post(f"https://{ip}/servers/votes", verify=False, json={
-				'1': x,
-				'2': str(encrypt(x, json.dumps(j).encode('utf8')))
-			}).json()
-			res.append(r)
-		except:
-			logging.warning(f'vote - {ip} \n {traceback.format_exc()}')
+		if ip != myip:
+			try:
+				r = requests.post(f"https://{ip}/servers/votes", verify=False, json={
+					'1': x,
+					'2': str(encrypt(x, json.dumps(j).encode('utf8')))
+				}).json()
+				res.append(r)
+			except:
+				logging.warning(f'vote - {ip} \n {traceback.format_exc()}')
 
 	# проверка на ошибку голосования
 	for i in res:
 		if i['status'] == 'leader':
-			global leader
 			leader = i['leader']
-			global ballot
 			ballot.cancel()
 			ballot = Timer(6 * cycle_time, vote)
 			ballot.start()
@@ -87,19 +94,33 @@ def vote():
 	if max_ip[0] == myip:
 
 		# если выбрали меня
+		res = []
 		for ip in server_ips.values():
 			x = randint(0, 999)
-			try:
-				r = requests.post(f"https://{ip}/servers/new_leader", verify=False, json={
-					'1': x,
-					'2': str(encrypt(x, json.dumps({
-						'status': 'ok',
-						'ip': myip
-					}).encode('utf8')))
-				}).json()
-				res.append(r)
-			except:
-				pass
+			if ip == myip:
+				try:
+					r = requests.post(f"http://localhost:5000/servers/new_leader", verify=False, json={
+						'1': x,
+						'2': str(encrypt(x, json.dumps({
+							'status': 'ok',
+							'ip': myip
+						}).encode('utf8')))
+					}).json()
+					res.append(r)  # Собираю резы на всякий случай
+				except:
+					pass
+			else:
+				try:
+					r = requests.post(f"https://{ip}/servers/new_leader", verify=False, json={
+						'1': x,
+						'2': str(encrypt(x, json.dumps({
+							'status': 'ok',
+							'ip': myip
+						}).encode('utf8')))
+					}).json()
+					res.append(r)  # Собираю резы на всякий случай
+				except:
+					pass
 		time.sleep(3 * cycle_time)
 		# запуск циклов
 		global leader_cycle
@@ -109,13 +130,10 @@ def vote():
 	else:
 		# если выбрали не меня
 		time.sleep(3 * cycle_time)
-		global last_time_elections
 		if time.time() - 4 * cycle_time >= last_time_elections:
 			vote()
 		else:
-			global last_time_elections
 			last_time_elections = time.time()
-			global ballot
 			ballot.cancel()
 			ballot = Timer(6 * cycle_time, vote)
 			ballot.start()
@@ -153,7 +171,7 @@ def new_leader():
 
 
 @app.route('/servers/votes', methods=['POST'])
-def votes():
+def func_votes():
 	# преобразование json запроса
 	try:
 		r = json.loads(request.data)
@@ -247,17 +265,22 @@ def func_leader():
 # Функция фоловера
 @app.route('/servers/follower', methods=['POST'])
 def follower():
+	global ballot
+	global server_ips
+	global cycle_time
+
 	r = json.loads(request.data)
 	r = decrypt(r['1'], eval(r['2']))
 	r = json.loads(r)
 	if r['ip'] == leader:
 		if leader != myip:
-			global ballot
 			ballot.cancel()
 			ballot = Timer(6 * cycle_time, vote)
 			ballot.start()
-		for data in r['data']:
-			database[data] = r['data'][data]
+		for data in r['data']['database']:
+			database[data] = r['data']['database'][data]
+		server_ips = r['data']['server_ips']
+		cycle_time = r['data']['cycle_time']
 		global stack
 		new_stack = stack
 		stack = []
@@ -266,6 +289,7 @@ def follower():
 			'1': x,
 			'2': str(encrypt(x, json.dumps(new_stack).encode('utf8')))
 		}
+	return {'status': 'not leader'}
 
 
 # аутентификация нового сервера
@@ -317,7 +341,7 @@ def add():
 	# аутентификация
 	if r['login'] not in user_logins:
 		return {"status": "error", "type error": "wrong login/password"}
-	if r['password'] not in user_logins['login']:
+	if r['password'] != user_logins[r['login']]:
 		return {"status": "error", "type error": "wrong login/password"}
 
 	stack.append([time.time(), 1, r['database'], r['values']])
@@ -347,7 +371,7 @@ def delete():
 	# аутентификация
 	if r['login'] not in user_logins:
 		return {"status": "error", "type error": "wrong login/password"}
-	if r['password'] not in user_logins['login']:
+	if r['password'] != user_logins[r['login']]:
 		return {"status": "error", "type error": "wrong login/password"}
 
 	stack.append([time.time(), 2, r['database'], r['values']])
@@ -373,7 +397,7 @@ def data():
 	# аутентификация
 	if r['login'] not in user_logins:
 		return {"status": "error", "type error": "wrong login/password"}
-	if r['password'] not in user_logins['login']:
+	if r['password'] != user_logins[r['login']]:
 		return {"status": "error", "type error": "wrong login/password"}
 
 	return database

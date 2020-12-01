@@ -55,7 +55,7 @@ def timeset(unixtime):
 		a[5],  # Second
 		int(unixtime * 1000 % 1000),  # Millisecond
 		)
-	print(time_tuple)
+	#print(time_tuple)
 	if sys.platform == 'linux':
 		_linux_set_time(time_tuple)
 	# elif sys.platform == 'win32':

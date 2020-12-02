@@ -443,7 +443,7 @@ def authentication(ip, my_login):
 			'ip': myip
 		}
 		x = randint(0, 999)
-		r = requests.post(f'https://{ip}/servers/auth', json={
+		r = requests.post(f'https://{ip}/servers/auth', verify=False, json={
 			'1': x,
 			'2': str(encrypt(x, json.dumps(j).encode('utf8')))
 		}).json()

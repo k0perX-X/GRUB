@@ -9,7 +9,6 @@ from random import randint, choice
 import timeset
 from threading import Timer
 
-
 # data
 stack = []
 leader = ''
@@ -26,7 +25,6 @@ myip = requests.get('https://api.ipify.org?format=json').json()['ip']
 cycle_time = 1
 last_time_elections = time.time()
 votes = {}
-
 
 app = Flask(__name__)
 logging.basicConfig(filename="log.txt", level=logging.WARNING)
@@ -56,7 +54,7 @@ def vote():
 				}).json()
 				res.append(r)
 			except:
-				logging.warning(f'vote - {ip} \n {traceback.format_exc()}')
+				logging.error(f'vote - {ip} \n {traceback.format_exc()}')
 
 	# проверка на ошибку голосования
 	for i in res:
@@ -110,7 +108,7 @@ def vote():
 					}).json()
 					res.append(r)  # Собираю резы на всякий случай
 				except:
-					pass
+					logging.error(f'vote - new_leader - localhost - {ip} \n {traceback.format_exc()}')
 			else:
 				try:
 					r = requests.post(f"https://{ip}/servers/new_leader", verify=False, json={
@@ -122,12 +120,16 @@ def vote():
 					}).json()
 					res.append(r)  # Собираю резы на всякий случай
 				except:
-					pass
+					logging.error(f'vote - new_leader - {ip} \n {traceback.format_exc()}')
 		time.sleep(3 * cycle_time)
 		# запуск циклов
 		global leader_cycle
 		leader_cycle = Timer(cycle_time, func_leader)
 		leader_cycle.start()
+		ballot.cancel()
+		ballot = Timer(6 * cycle_time, vote)
+		ballot.start()
+
 
 	else:
 		# если выбрали не меня
@@ -314,7 +316,7 @@ def auth_server():
 		except:
 			return {'status': 'error'}
 	else:
-		x = randint(0,999)
+		x = randint(0, 999)
 		return {
 			'status': 'not leader',
 			'leader': {
@@ -423,15 +425,12 @@ def test():
 	if leader == myip:
 		return {
 			'1': x,
-			'2': encrypt(x, json.dumps({'status': 'leader'}).encode('utf8'))
+			'2': str(encrypt(x, json.dumps({'status': 'leader'}).encode('utf8')))
 		}
 	else:
 		return {
 			'1': x,
-			'2': encrypt(x, json.dumps({
-				'status': 'follower',
-			 	'leader': leader
-			}).encode('utf8'))
+			'2': str(encrypt(x, json.dumps({'status': 'follower', 'leader': leader}).encode('utf8')))
 		}
 
 
@@ -461,7 +460,7 @@ def debug():
 	x = randint(0, 999)
 	return {
 		'1': x,
-		'2': encrypt(x, json.dumps({
+		'2': str(encrypt(x, json.dumps({
 			'database': database,
 			'server_ips': server_ips,
 			'stack': stack,
@@ -471,7 +470,7 @@ def debug():
 			'cycle_time': cycle_time,
 			'last_time_elections': last_time_elections,
 			'votes': votes
-		}).encode('utf8'))
+		}).encode('utf8')))
 	}
 
 
@@ -489,11 +488,9 @@ ballot.start()
 # Таймер лидера
 leader_cycle = Timer(cycle_time, func_leader)
 
-
 # стартующая функция
 if not first:
 	authentication(start_leader, login)
-
 
 if __name__ == '__main__':
 	app.run()

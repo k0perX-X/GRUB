@@ -9,8 +9,12 @@ from random import randint, choice
 import timeset
 from threading import Timer
 import urllib3
-urllib3.disable_warnings()
 
+urllib3.disable_warnings()  # отключает уведомление о не верифицированном ssl
+
+# TODO: обновление cycle_time
+# TODO: вывод в логфайл полученные данные если ошибка в json запросе
+# TODO: параллельные запросы в лидере
 
 # data
 stack = []
@@ -20,8 +24,6 @@ server_ips = {
 }
 database = {
 	'data': {
-		'132': 123,
-		'привет': 'мир'
 	}
 }
 myip = requests.get('https://api.ipify.org?format=json').json()['ip']

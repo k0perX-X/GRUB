@@ -8,6 +8,9 @@ from crypt import decrypt, encrypt, user_logins, login, first, start_leader
 from random import randint, choice
 import timeset
 from threading import Timer
+import urllib3
+urllib3.disable_warnings()
+
 
 # data
 stack = []

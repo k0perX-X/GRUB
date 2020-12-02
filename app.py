@@ -321,7 +321,7 @@ def auth_server():
 			'status': 'not leader',
 			'leader': {
 				'1': x,
-				'2': encrypt(x, json.dumps(leader).encode('utf8'))
+				'2': str(encrypt(x, json.dumps(leader).encode('utf8')))
 			}
 		}
 
@@ -445,7 +445,7 @@ def authentication(ip, my_login):
 		x = randint(0, 999)
 		r = requests.post(f'https://{ip}/servers/auth', json={
 			'1': x,
-			'2': encrypt(x, json.dumps(j).encode('utf8'))
+			'2': str(encrypt(x, json.dumps(j).encode('utf8')))
 		}).json()
 		if r['status'] == 'ok':
 			leader = ip

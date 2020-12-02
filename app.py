@@ -37,6 +37,7 @@ def vote():
 	global last_time_elections
 	global ballot
 	global leader
+	global votes
 
 	# рассылка голоса
 	my_vote = choice([*server_ips.values()])
@@ -76,6 +77,7 @@ def vote():
 			new_votes[v] = 1
 		else:
 			new_votes[v] += 1
+	votes = {}
 	max_ip = []
 	max_value = 0
 	for i in new_votes:
@@ -145,21 +147,21 @@ def new_leader():
 	try:
 		r = json.loads(request.data)
 	except Exception as e:
-		logging.warning(time.ctime(time.time()) + "votes - json recognition - not json")
+		logging.warning(time.ctime(time.time()) + "new_leader - json recognition - not json")
 		return {"status": "error", "type error": "json recognition", "json recognition": "not json"}
 
 	# encrypt
 	try:
 		r = decrypt(r['1'], eval(r['2']))
 	except Exception as e:
-		logging.warning(time.ctime(time.time()) + "votes - json recognition - encode")
+		logging.warning(time.ctime(time.time()) + "new_leader - json recognition - encode")
 		return {"status": "error", "type error": "json recognition", "json recognition": "encode"}
 
 	# преобразование json запроса
 	try:
 		r = json.loads(r)
 	except Exception as e:
-		logging.warning(time.ctime(time.time()) + "votes - json recognition - not json")
+		logging.warning(time.ctime(time.time()) + "new_leader - json recognition - not json")
 		return {"status": "error", "type error": "json recognition", "json recognition": "not json"}
 
 	global leader
@@ -176,21 +178,21 @@ def func_votes():
 	try:
 		r = json.loads(request.data)
 	except Exception as e:
-		logging.warning(time.ctime(time.time()) + "votes - json recognition - not json")
+		logging.warning(time.ctime(time.time()) + "func_votes - json recognition - not json")
 		return {"status": "error", "type error": "json recognition", "json recognition": "not json"}
 
 	# encrypt
 	try:
 		r = decrypt(r['1'], eval(r['2']))
 	except Exception as e:
-		logging.warning(time.ctime(time.time()) + "votes - json recognition - encode")
+		logging.warning(time.ctime(time.time()) + "func_votes - json recognition - encode")
 		return {"status": "error", "type error": "json recognition", "json recognition": "encode"}
 
 	# преобразование json запроса
 	try:
 		r = json.loads(r)
 	except Exception as e:
-		logging.warning(time.ctime(time.time()) + "votes - json recognition - not json")
+		logging.warning(time.ctime(time.time()) + "func_votes - json recognition - not json")
 		return {"status": "error", "type error": "json recognition", "json recognition": "not json"}
 
 	if time.time() - 3 * cycle_time < last_time_elections:
@@ -417,10 +419,20 @@ def data():
 # дополнительные функции
 @app.route('/status', methods=['GET'])
 def test():
+	x = randint(0, 999)
 	if leader == myip:
-		return {'status': 'leader'}
+		return {
+			'1': x,
+			'2': encrypt(x, json.dumps({'status': 'leader'}).encode('utf8'))
+		}
 	else:
-		return {'status': 'follower', 'leader': leader}
+		return {
+			'1': x,
+			'2': encrypt(x, json.dumps({
+				'status': 'follower',
+			 	'leader': leader
+			}).encode('utf8'))
+		}
 
 
 def authentication(ip, my_login):
@@ -442,6 +454,26 @@ def authentication(ip, my_login):
 		else:
 			r = decrypt(r['leader']['1'], eval(r['leader']['2']))
 			ip = r
+
+
+@app.route('/debug', methods=['GET'])
+def debug():
+	x = randint(0, 999)
+	return {
+		'1': x,
+		'2': encrypt(x, json.dumps({
+			'database': database,
+			'server_ips': server_ips,
+			'stack': stack,
+			'leader': leader,
+			'login': login,
+			'myip': myip,
+			'cycle_time': cycle_time,
+			'last_time_elections': last_time_elections,
+			'votes': votes
+		}).encode('utf8'))
+	}
+
 
 # Запуск таймеров
 

@@ -4,7 +4,7 @@ import logging
 import time
 import requests
 import traceback
-from crypt import decrypt, encrypt, user_logins, login
+from crypt import decrypt, encrypt, user_logins, login, first, start_leader
 from random import randint, choice
 import timeset
 from threading import Timer
@@ -204,7 +204,7 @@ def func_votes():
 	return {'status': 'ok'}
 
 
-# Фкнуция лидера
+# Функция лидера
 def func_leader():
 	global leader_cycle
 	leader_cycle.cancel()
@@ -277,8 +277,8 @@ def follower():
 			ballot.cancel()
 			ballot = Timer(6 * cycle_time, vote)
 			ballot.start()
-		for data in r['data']['database']:
-			database[data] = r['data']['database'][data]
+		for Data in r['data']['database']:
+			database[Data] = r['data']['database'][Data]
 		server_ips = r['data']['server_ips']
 		cycle_time = r['data']['cycle_time']
 		global stack
@@ -296,8 +296,11 @@ def follower():
 @app.route('/servers/auth', methods=['POST'])
 def auth_server():
 	# {
-	# 	'ip'
-	# 	'login'
+	# 	'1': x,
+	# 	'2': {
+	# 		'ip'
+	# 		'login'
+	# 	}
 	# }
 	if myip == leader:
 		try:
@@ -309,7 +312,15 @@ def auth_server():
 		except:
 			return {'status': 'error'}
 	else:
-		return {'status': 'not leader'}
+		x = randint(0,999)
+		return {
+			'status': 'not leader',
+			'leader': {
+				'1': x,
+				'2': encrypt(x, json.dumps(leader).encode('utf8'))
+			}
+		}
+
 
 # Коды операций
 # 1 - добавить/изменить элемент(-ы) [время, код операции, имя базы, значения]
@@ -412,6 +423,26 @@ def test():
 		return {'status': 'follower', 'leader': leader}
 
 
+def authentication(ip, my_login):
+	global leader
+
+	for i in range(10):
+		j = {
+			'login': my_login,
+			'ip': myip
+		}
+		x = randint(0, 999)
+		r = requests.post(f'https://{ip}/servers/auth', json={
+			'1': x,
+			'2': encrypt(x, json.dumps(j).encode('utf8'))
+		}).json()
+		if r['status'] == 'ok':
+			leader = ip
+			break
+		else:
+			r = decrypt(r['leader']['1'], eval(r['leader']['2']))
+			ip = r
+
 # Запуск таймеров
 
 # Обновление времени
@@ -425,6 +456,11 @@ ballot.start()
 
 # Таймер лидера
 leader_cycle = Timer(cycle_time, func_leader)
+
+
+# стартующая функция
+if not first:
+	authentication(start_leader, login)
 
 
 if __name__ == '__main__':

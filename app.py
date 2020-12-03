@@ -4,7 +4,7 @@ import logging
 import time
 import requests
 import traceback
-from crypt import decrypt, encrypt, user_logins, login, first, start_leader
+from crypt import decrypt, encrypt, user_logins, login, first, start_leader, debug
 from random import randint, choice
 import timeset
 from threading import Timer
@@ -15,6 +15,8 @@ urllib3.disable_warnings()  # отключает уведомление о не 
 # TODO: обновление cycle_time
 # TODO: вывод в логфайл полученные данные если ошибка в json запросе
 # TODO: параллельные запросы в лидере
+# TODO: улучшить криптографию
+# TODO: debug режим
 
 # data
 stack = []
@@ -30,6 +32,8 @@ myip = requests.get('https://api.ipify.org?format=json').json()['ip']
 cycle_time = 1
 last_time_elections = time.time()
 votes = {}
+if debug:
+	debug_dict = {}
 
 app = Flask(__name__)
 logging.basicConfig(filename="log.txt", level=logging.WARNING)
@@ -238,6 +242,8 @@ def func_leader():
 				'1': x,
 				'2': str(encrypt(x, json.dumps(j).encode('utf8')))
 			}).json()
+			if debug:
+				debug_dict['leader'] = r
 			r = decrypt(r['1'], eval(r['2']))
 			r = json.loads(r)
 			res += r
@@ -460,24 +466,25 @@ def authentication(ip, my_login):
 			ip = r
 
 
-@app.route('/debug', methods=['GET'])
-def debug():
-	x = randint(0, 999)
-	return {
-		'1': x,
-		'2': str(encrypt(x, json.dumps({
-			'database': database,
-			'server_ips': server_ips,
-			'stack': stack,
-			'leader': leader,
-			'login': login,
-			'myip': myip,
-			'cycle_time': cycle_time,
-			'last_time_elections': last_time_elections,
-			'votes': votes
-		}).encode('utf8')))
-	}
-
+if debug:
+	@app.route('/debug', methods=['GET'])
+	def debug():
+		x = randint(0, 999)
+		return {
+			'1': x,
+			'2': str(encrypt(x, json.dumps({
+				'database': database,
+				'server_ips': server_ips,
+				'stack': stack,
+				'leader': leader,
+				'login': login,
+				'myip': myip,
+				'cycle_time': cycle_time,
+				'last_time_elections': last_time_elections,
+				'votes': votes,
+				'debug': debug_dict
+			}).encode('utf8')))
+		}
 
 # Запуск таймеров
 

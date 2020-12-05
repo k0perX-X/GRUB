@@ -1,3 +1,11 @@
+import os.path
+
+if not os.path.exists('output/encrypt_keys.py'):
+	print("""The file output/encrypt keys.py is missing.
+If this is your first server on the network, generate a file using output/encrypt_keys_generator.py.
+If this is not your first server on the network, then copy the file from your other server.""")
+	exit()
+
 from flask import Flask, request
 import json
 import logging

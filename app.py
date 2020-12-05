@@ -5,7 +5,8 @@ import time
 import requests
 import traceback
 from crypt import decrypt, encrypt
-from output.config import user_logins, login, first, start_leader, debug, base_cycle_time, multiplier_update_cycle_time
+from output.config import login, first, start_leader, debug, base_cycle_time, multiplier_update_cycle_time, admin_logins
+from output.user_logins import saved_user_logins
 from output.database import saved_database
 from random import randint, choice
 import timeset
@@ -21,6 +22,7 @@ server_ips = {
 	login: requests.get('https://api.ipify.org?format=json').json()['ip']
 }
 database = saved_database
+user_logins = saved_user_logins
 myip = requests.get('https://api.ipify.org?format=json').json()['ip']
 cycle_time = base_cycle_time
 last_time_elections = time.time()
@@ -28,6 +30,7 @@ votes = {}
 if debug:
 	debug_dict = {}
 response_time = {}
+lost_leader = {}
 
 app = Flask(__name__)
 logging.basicConfig(filename="output/log.txt", level=logging.WARNING)
@@ -42,10 +45,10 @@ def vote():
 	global cycle_time
 	global leader_cycle
 	global update_cycle_time
+	global lost_leader
 
 	def send_vote(ip, x):
 		nonlocal res
-
 		try:
 			r = requests.post(f"https://{ip}/servers/votes", verify=False, json={
 				'1': x,
@@ -61,7 +64,6 @@ def vote():
 
 	def vote_new_leader(ip, x):
 		nonlocal res
-
 		if ip == myip:
 			try:
 				r = requests.post(f"http://localhost:5000/servers/new_leader", verify=False, json={
@@ -77,7 +79,6 @@ def vote():
 					logging.error(f'vote - new_leader - localhost - {ip} - json - {r}\n {traceback.format_exc()}')
 				else:
 					logging.error(f'vote - new_leader - localhost - {ip}\n {traceback.format_exc()}')
-
 		else:
 			try:
 				r = requests.post(f"https://{ip}/servers/new_leader", verify=False, json={
@@ -176,6 +177,7 @@ def vote():
 			ballot.cancel()
 			ballot = Timer(6 * cycle_time, vote)
 			ballot.start()
+	lost_leader = {}
 
 
 @app.route('/servers/new_leader', methods=['POST'])
@@ -234,6 +236,12 @@ def func_votes():
 
 	if time.time() - 3 * cycle_time < last_time_elections:
 		return {'status': 'leader', 'leader': leader}
+	if r['ip'] not in lost_leader:
+		lost_leader[r['ip']] = 1
+	else:
+		lost_leader[r['ip']] += 1
+	if lost_leader[r['ip']] > 5:
+		return {'status': 'leader', 'leader': leader}
 
 	if leader == myip:
 		leader_cycle.cancel()
@@ -250,6 +258,7 @@ def func_leader():
 	leader_cycle = Timer(cycle_time, func_leader)
 	leader_cycle.start()
 	global response_time
+	global user_logins
 
 	def leader_request(ip, x):
 		nonlocal res
@@ -306,7 +315,8 @@ def func_leader():
 		'data': {
 			'database': database,
 			'server_ips': server_ips,
-			'cycle_time': cycle_time
+			'cycle_time': cycle_time,
+			'user_logins': user_logins
 		}
 	}
 	res = []
@@ -315,7 +325,7 @@ def func_leader():
 	p = []
 	for ip in server_ips.values():
 		x = randint(0, 999)
-		p.append(Thread(target=leader_request, args=(ip,x)))
+		p.append(Thread(target=leader_request, args=(ip, x)))
 		p[len(p) - 1].start()
 
 	# Ожидаем когда все ответят
@@ -341,6 +351,8 @@ def func_leader():
 					del database[deystv[2]][element]
 				except:
 					pass
+		elif deystv[1] == 3:
+			user_logins = {**user_logins, **deystv[2]}
 
 
 # Функция фоловера
@@ -367,9 +379,11 @@ def follower():
 			ballot.cancel()
 			ballot = Timer(6 * cycle_time, vote)
 			ballot.start()
+		user_logins = r['data']['user_logins']
 		new_stack = stack
 		stack = []
 		save_database()
+		save_user_logins()
 		x = randint(0, 999)
 		return {
 			'1': x,
@@ -411,6 +425,7 @@ def auth_server():
 # Коды операций
 # 1 - добавить/изменить элемент(-ы) [время, код операции, имя базы, значения]
 # 2 - удалить элемент [время, код операции, имя базы, ключ]
+# 3 - добавить пользователя [время, код операции, {username, password}]
 # stack - массив массивов [[время, код операции, данные1, данные2, ...], ...]
 
 
@@ -430,9 +445,11 @@ def add():
 		return {"status": "error", "type error": "json recognition"}
 
 	# Проверка целостности запроса
-	if 'login' not in r or 'password' not in r or 'values' not in r or \
-			'database' not in r or type(r['login']) != str or type(r['password']) != str or \
-			type(r['values']) != dict or r['database'] not in database:
+	if 'login' not in r or 'password' not in r or 'values' not in r or 'database' not in r:
+		return {"status": "error", "type error": 'json is not full'}
+	if type(r['login']) != str or type(r['password']) != str or type(r['values']) != dict:
+		return {"status": "error", "type error": 'json is not full'}
+	if r['database'] not in database:
 		return {"status": "error", "type error": 'json is not full'}
 
 	# аутентификация
@@ -449,7 +466,7 @@ def add():
 def delete():
 	# {
 	# 	'login'
-	# 	'password'
+	# 	'password' md5
 	# 	'database'
 	# 	'values' []
 	# }
@@ -460,9 +477,11 @@ def delete():
 		return {"status": "error", "type error": "json recognition"}
 
 	# Проверка целостности запроса
-	if 'login' not in r or 'password' not in r or 'values' not in r or \
-			'database' not in r or type(r['login']) != str or type(r['password']) != str or \
-			type(r['values']) != list or r['database'] not in database:
+	if 'login' not in r or 'password' not in r or 'values' not in r or 'database' not in r:
+		return {"status": "error", "type error": 'json is not full'}
+	if type(r['login']) != str or type(r['password']) != str or type(r['values']) != list or type(r['database']) != str:
+		return {"status": "error", "type error": 'json is not full'}
+	if r['database'] not in database:
 		return {"status": "error", "type error": 'json is not full'}
 
 	# аутентификация
@@ -479,7 +498,7 @@ def delete():
 def data():
 	# {
 	# 	'login'
-	# 	'password'
+	# 	'password' md5
 	# }
 	# преобразование json запроса
 	try:
@@ -488,7 +507,9 @@ def data():
 		return {"status": "error", "type error": "json recognition"}
 
 	# Проверка целостности запроса
-	if 'login' not in r or 'password' not in r or type(r['login']) != str or type(r['password']) != str:
+	if 'login' not in r or 'password' not in r:
+		return {"status": "error", "type error": 'json is not full'}
+	if type(r['login']) != str or type(r['password']) != str:
 		return {"status": "error", "type error": 'json is not full'}
 
 	# аутентификация
@@ -498,6 +519,42 @@ def data():
 		return {"status": "error", "type error": "wrong login/password"}
 
 	return database
+
+
+@app.route('/add_user', methods=['POST'])
+def add_user():
+	# {
+	# 	'login'
+	# 	'password' md5
+	# 	'user': {
+	# 		'username'
+	#		'password' md5
+	# 	}
+	# }
+	# преобразование json запроса
+	try:
+		r = json.loads(request.data)
+	except Exception as e:
+		return {"status": "error", "type error": "json recognition"}
+
+	# Проверка целостности запроса
+	if 'login' not in r or 'password' not in r or 'user' not in r:
+		return {"status": "error", "type error": 'json is not full'}
+	if type(r['login']) != str or type(r['password']) != str or type(r['user']) != dict:
+		return {"status": "error", "type error": 'json is not full'}
+	if 'username' not in r['user'] or 'password' not in r['user']:
+		return {"status": "error", "type error": 'json is not full'}
+	if type(r['user']['username']) != str or type(r['user']['password']) != str:
+		return {"status": "error", "type error": 'json is not full'}
+
+	# аутентификация
+	if r['login'] not in admin_logins:
+		return {"status": "error", "type error": "wrong login/password"}
+	if r['password'] != user_logins[r['login']]:
+		return {"status": "error", "type error": "wrong login/password"}
+
+	stack.append([time.time(), 3, r['user']])
+	return {'status': 'ok'}
 
 
 # дополнительные функции
@@ -564,6 +621,12 @@ def save_database():
 	f.close()
 
 
+def save_user_logins():
+	f = open('output/database.py', 'w')
+	f.write("from hashlib import md5\n# 'username': md5('password'.encode('utf8')).hexdigest()\n\nsaved_user_logins = " + str(user_logins))
+	f.close()
+
+
 def func_update_cycle_time():
 	global ballot
 	global leader_cycle
@@ -606,6 +669,7 @@ leader_cycle = Timer(cycle_time, func_leader)
 
 # Таймер обновления cycle_time
 update_cycle_time = Timer(cycle_time * multiplier_update_cycle_time, func_update_cycle_time)
+
 
 # стартующая функция
 if not first:

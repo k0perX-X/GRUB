@@ -1,7 +1,7 @@
 import sys
 import datetime
 import requests
-
+from threading import Timer
 
 def _linux_set_time(time_tuple):
 	import ctypes
@@ -43,6 +43,8 @@ def timeset(unixtime):
 
 def settimeyandex():
 	timeset(float(requests.get('https://yandex.com/time/sync.json').json()["time"]) / 1000)
+	set_time = Timer(3600.0, settimeyandex)
+	set_time.start()
 
 
 if __name__ == "__main__":

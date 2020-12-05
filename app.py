@@ -4,19 +4,15 @@ import logging
 import time
 import requests
 import traceback
-from crypt import decrypt, encrypt, user_logins, login, first, start_leader, debug
+from crypt import decrypt, encrypt
+from output.config import user_logins, login, first, start_leader, debug, base_cycle_time, multiplier_update_cycle_time
+from output.database import saved_database
 from random import randint, choice
 import timeset
-from threading import Timer
+from threading import Timer, Thread
 import urllib3
 
 urllib3.disable_warnings()  # отключает уведомление о не верифицированном ssl
-
-# TODO: обновление cycle_time
-# TODO: вывод в логфайл полученные данные если ошибка в json запросе
-# TODO: параллельные запросы в лидере
-# TODO: улучшить криптографию
-# TODO: debug режим
 
 # data
 stack = []
@@ -24,19 +20,17 @@ leader = ''
 server_ips = {
 	login: requests.get('https://api.ipify.org?format=json').json()['ip']
 }
-database = {
-	'data': {
-	}
-}
+database = saved_database
 myip = requests.get('https://api.ipify.org?format=json').json()['ip']
-cycle_time = 1
+cycle_time = base_cycle_time
 last_time_elections = time.time()
 votes = {}
 if debug:
 	debug_dict = {}
+response_time = {}
 
 app = Flask(__name__)
-logging.basicConfig(filename="log.txt", level=logging.WARNING)
+logging.basicConfig(filename="output/log.txt", level=logging.WARNING)
 
 
 # Функции голосования
@@ -45,6 +39,60 @@ def vote():
 	global ballot
 	global leader
 	global votes
+	global cycle_time
+	global leader_cycle
+	global update_cycle_time
+
+	def send_vote(ip, x):
+		nonlocal res
+
+		try:
+			r = requests.post(f"https://{ip}/servers/votes", verify=False, json={
+				'1': x,
+				'2': str(encrypt(x, json.dumps(j).encode('utf8')))
+			})
+			r.json()
+			res.append(r)
+		except:
+			if 'r' in locals():
+				logging.error(f'vote - {ip} - json - {r} \n {traceback.format_exc()}')
+			else:
+				logging.error(f'vote - {ip} \n {traceback.format_exc()}')
+
+	def vote_new_leader(ip, x):
+		nonlocal res
+
+		if ip == myip:
+			try:
+				r = requests.post(f"http://localhost:5000/servers/new_leader", verify=False, json={
+					'1': x,
+					'2': str(encrypt(x, json.dumps({
+						'status': 'ok',
+						'ip': myip
+					}).encode('utf8')))
+				}).json()
+				res.append(r)  # Собираю резы на всякий случай
+			except:
+				if 'r' in locals():
+					logging.error(f'vote - new_leader - localhost - {ip} - json - {r}\n {traceback.format_exc()}')
+				else:
+					logging.error(f'vote - new_leader - localhost - {ip}\n {traceback.format_exc()}')
+
+		else:
+			try:
+				r = requests.post(f"https://{ip}/servers/new_leader", verify=False, json={
+					'1': x,
+					'2': str(encrypt(x, json.dumps({
+						'status': 'ok',
+						'ip': myip
+					}).encode('utf8')))
+				}).json()
+				res.append(r)  # Собираю резы на всякий случай
+			except:
+				if 'r' in locals():
+					logging.error(f'vote - new_leader - localhost - {ip} - json - {r}\n {traceback.format_exc()}')
+				else:
+					logging.error(f'vote - new_leader - localhost - {ip}\n {traceback.format_exc()}')
 
 	# рассылка голоса
 	my_vote = choice([*server_ips.values()])
@@ -54,16 +102,10 @@ def vote():
 	}
 	res = []
 	for ip in server_ips.values():
-		x = randint(0, 999)
 		if ip != myip:
-			try:
-				r = requests.post(f"https://{ip}/servers/votes", verify=False, json={
-					'1': x,
-					'2': str(encrypt(x, json.dumps(j).encode('utf8')))
-				}).json()
-				res.append(r)
-			except:
-				logging.error(f'vote - {ip} \n {traceback.format_exc()}')
+			x = randint(0, 999)
+			p = Thread(target=send_vote, args=(ip, x))
+			p.start()
 
 	# проверка на ошибку голосования
 	for i in res:
@@ -98,6 +140,7 @@ def vote():
 	if len(max_ip) > 1:
 		time.sleep(cycle_time)
 		vote()
+		return
 
 	# подведение результатов
 	if max_ip[0] == myip:
@@ -106,45 +149,28 @@ def vote():
 		res = []
 		for ip in server_ips.values():
 			x = randint(0, 999)
-			if ip == myip:
-				try:
-					r = requests.post(f"http://localhost:5000/servers/new_leader", verify=False, json={
-						'1': x,
-						'2': str(encrypt(x, json.dumps({
-							'status': 'ok',
-							'ip': myip
-						}).encode('utf8')))
-					}).json()
-					res.append(r)  # Собираю резы на всякий случай
-				except:
-					logging.error(f'vote - new_leader - localhost - {ip} \n {traceback.format_exc()}')
-			else:
-				try:
-					r = requests.post(f"https://{ip}/servers/new_leader", verify=False, json={
-						'1': x,
-						'2': str(encrypt(x, json.dumps({
-							'status': 'ok',
-							'ip': myip
-						}).encode('utf8')))
-					}).json()
-					res.append(r)  # Собираю резы на всякий случай
-				except:
-					logging.error(f'vote - new_leader - {ip} \n {traceback.format_exc()}')
+			p = Thread(target=vote_new_leader, args=(ip, x))
+			p.start()
+
 		time.sleep(3 * cycle_time)
 		# запуск циклов
-		global leader_cycle
+		leader_cycle.cancel()
 		leader_cycle = Timer(cycle_time, func_leader)
 		leader_cycle.start()
 		ballot.cancel()
 		ballot = Timer(6 * cycle_time, vote)
 		ballot.start()
-
+		cycle_time = base_cycle_time
+		update_cycle_time.cancel()
+		update_cycle_time = Timer(cycle_time * multiplier_update_cycle_time, func_update_cycle_time)
+		update_cycle_time.start()
 
 	else:
 		# если выбрали не меня
 		time.sleep(3 * cycle_time)
 		if time.time() - 4 * cycle_time >= last_time_elections:
 			vote()
+			return
 		else:
 			last_time_elections = time.time()
 			ballot.cancel()
@@ -158,21 +184,21 @@ def new_leader():
 	try:
 		r = json.loads(request.data)
 	except Exception as e:
-		logging.warning(time.ctime(time.time()) + "new_leader - json recognition - not json")
+		logging.error(time.ctime(time.time()) + f"new_leader - json recognition - not json - json - {request.data}")
 		return {"status": "error", "type error": "json recognition", "json recognition": "not json"}
 
 	# encrypt
 	try:
 		r = decrypt(r['1'], eval(r['2']))
 	except Exception as e:
-		logging.warning(time.ctime(time.time()) + "new_leader - json recognition - encode")
+		logging.error(time.ctime(time.time()) + f"new_leader - json recognition - encode - json - {r}")
 		return {"status": "error", "type error": "json recognition", "json recognition": "encode"}
 
 	# преобразование json запроса
 	try:
 		r = json.loads(r)
 	except Exception as e:
-		logging.warning(time.ctime(time.time()) + "new_leader - json recognition - not json")
+		logging.error(time.ctime(time.time()) + f"new_leader - json recognition - not json - json - {r}")
 		return {"status": "error", "type error": "json recognition", "json recognition": "not json"}
 
 	global leader
@@ -189,21 +215,21 @@ def func_votes():
 	try:
 		r = json.loads(request.data)
 	except Exception as e:
-		logging.warning(time.ctime(time.time()) + "func_votes - json recognition - not json")
+		logging.error(time.ctime(time.time()) + f"func_votes - json recognition - not json - json - {request.data}")
 		return {"status": "error", "type error": "json recognition", "json recognition": "not json"}
 
 	# encrypt
 	try:
 		r = decrypt(r['1'], eval(r['2']))
 	except Exception as e:
-		logging.warning(time.ctime(time.time()) + "func_votes - json recognition - encode")
+		logging.warning(time.ctime(time.time()) + f"func_votes - json recognition - encode- json - {r}")
 		return {"status": "error", "type error": "json recognition", "json recognition": "encode"}
 
 	# преобразование json запроса
 	try:
 		r = json.loads(r)
 	except Exception as e:
-		logging.warning(time.ctime(time.time()) + "func_votes - json recognition - not json")
+		logging.warning(time.ctime(time.time()) + f"func_votes - json recognition - not json - json - {r}")
 		return {"status": "error", "type error": "json recognition", "json recognition": "not json"}
 
 	if time.time() - 3 * cycle_time < last_time_elections:
@@ -223,6 +249,57 @@ def func_leader():
 	leader_cycle.cancel()
 	leader_cycle = Timer(cycle_time, func_leader)
 	leader_cycle.start()
+	global response_time
+
+	def leader_request(ip, x):
+		nonlocal res
+
+		excepttf = False
+		start_time = time.time()
+		if ip == myip:
+			r = requests.post(f"http://localhost:5000/servers/follower", verify=False, json={
+				'1': x,
+				'2': str(encrypt(x, json.dumps(j).encode('utf8')))
+			}).json()
+			if debug:
+				debug_dict['leader'] = r
+			r = decrypt(r['1'], eval(r['2']))
+			r = json.loads(r)
+			res += r
+		else:
+			try:
+				r = requests.post(f"https://{ip}/servers/follower", verify=False, json={
+					'1': x,
+					'2': str(encrypt(x, json.dumps(j).encode('utf8')))
+				})
+				r.json()
+				r = decrypt(r['1'], eval(r['2']))
+				r = json.loads(r)
+				res += r
+				global ballot
+				ballot.cancel()
+				ballot = Timer(6 * cycle_time, vote)
+				ballot.start()
+			except:
+				excepttf = True
+				if 'r' in locals():
+					logging.warning(f'leader - {ip} - json - {r}\n {traceback.format_exc()}')
+				else:
+					logging.warning(f'leader - {ip}\n {traceback.format_exc()}')
+		if not excepttf:
+			if ip in response_time:
+				if type(response_time) != str:
+					if response_time[ip] < time.time() - start_time:
+						response_time[ip] = time.time() - start_time
+					else:
+						pass
+				else:
+					response_time[ip] = time.time() - start_time
+			else:
+				response_time[ip] = time.time() - start_time
+		else:
+			response_time[ip] = 'except'
+
 	# Создаём запрос
 	j = {
 		'ip': myip,
@@ -235,34 +312,23 @@ def func_leader():
 	res = []
 
 	# рассылаем запрос всем
+	p = []
 	for ip in server_ips.values():
-		if ip == myip:
-			x = randint(0, 999)
-			r = requests.post(f"http://localhost:5000/servers/follower", verify=False, json={
-				'1': x,
-				'2': str(encrypt(x, json.dumps(j).encode('utf8')))
-			}).json()
-			if debug:
-				debug_dict['leader'] = r
-			r = decrypt(r['1'], eval(r['2']))
-			r = json.loads(r)
-			res += r
-		else:
-			x = randint(0, 999)
-			try:
-				r = requests.post(f"https://{ip}/servers/follower", verify=False, json={
-					'1': x,
-					'2': str(encrypt(x, json.dumps(j).encode('utf8')))
-				}).json()
-				r = decrypt(r['1'], eval(r['2']))
-				r = json.loads(r)
-				res += r
-				global ballot
-				ballot.cancel()
-				ballot = Timer(6 * cycle_time, vote)
-				ballot.start()
-			except:
-				logging.warning(f'leader - {ip} \n {traceback.format_exc()}')
+		x = randint(0, 999)
+		p.append(Thread(target=leader_request, args=(ip,x)))
+		p[len(p) - 1].start()
+
+	# Ожидаем когда все ответят
+	tf = True
+	ch = time.time()
+	while tf:
+		time.sleep(0.01)
+		tf = False
+		for i in p:
+			if i.is_alive():
+				tf = True
+		if time.time() - ch > cycle_time:  # если слишком долго
+			tf = False
 
 	# обработка полученных стеков
 	res.sort(key=lambda y: y[0])
@@ -283,6 +349,7 @@ def follower():
 	global ballot
 	global server_ips
 	global cycle_time
+	global stack
 
 	r = json.loads(request.data)
 	r = decrypt(r['1'], eval(r['2']))
@@ -295,10 +362,14 @@ def follower():
 		for Data in r['data']['database']:
 			database[Data] = r['data']['database'][Data]
 		server_ips = r['data']['server_ips']
-		cycle_time = r['data']['cycle_time']
-		global stack
+		if r['data']['cycle_time'] != cycle_time and myip != leader:
+			cycle_time = r['data']['cycle_time']
+			ballot.cancel()
+			ballot = Timer(6 * cycle_time, vote)
+			ballot.start()
 		new_stack = stack
 		stack = []
+		save_database()
 		x = randint(0, 999)
 		return {
 			'1': x,
@@ -486,6 +557,39 @@ if debug:
 			}).encode('utf8')))
 		}
 
+
+def save_database():
+	f = open('output/database.py', 'w')
+	f.write('saved_database = ' + str(database))
+	f.close()
+
+
+def func_update_cycle_time():
+	global ballot
+	global leader_cycle
+	global update_cycle_time
+	global cycle_time
+	global response_time
+	r = 0
+	for i in response_time.values():
+		if type(i) == float:
+			if i > r:
+				r = i
+	response_time = {}
+	if r != 0:
+		cycle_time = r * 2
+		if leader == myip:
+			leader_cycle.cancel()
+			leader_cycle = Timer(cycle_time, func_leader)
+			leader_cycle.start()
+			ballot.cancel()
+			ballot = Timer(6 * cycle_time, vote)
+			ballot.start()
+			update_cycle_time.cancel()
+			update_cycle_time = Timer(cycle_time * multiplier_update_cycle_time, func_update_cycle_time)
+			update_cycle_time.start()
+
+
 # Запуск таймеров
 
 # Обновление времени
@@ -499,6 +603,9 @@ ballot.start()
 
 # Таймер лидера
 leader_cycle = Timer(cycle_time, func_leader)
+
+# Таймер обновления cycle_time
+update_cycle_time = Timer(cycle_time * multiplier_update_cycle_time, func_update_cycle_time)
 
 # стартующая функция
 if not first:

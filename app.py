@@ -630,7 +630,7 @@ def save_database():
 
 
 def save_user_logins():
-	f = open('output/database.py', 'w')
+	f = open('output/user_logins.py', 'w')
 	f.write("from hashlib import md5\n# 'username': md5('password'.encode('utf8')).hexdigest()\n\nsaved_user_logins = " + str(user_logins))
 	f.close()
 

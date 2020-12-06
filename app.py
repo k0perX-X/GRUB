@@ -1,5 +1,10 @@
 import os.path
 
+if not os.path.exists('output/encrypt_keys_generator.py'):
+	print("""БЛЯТЬ ПИЗДЕЦ""")
+	exit()
+
+
 if not os.path.exists('output/encrypt_keys.py'):
 	print("""The file output/encrypt keys.py is missing.
 If this is your first server on the network, generate a file using output/encrypt_keys_generator.py.

@@ -1,5 +1,7 @@
 # GRUB
 
+Simple and lightweight RAFT algorithm. Designed for connecting small databases on a large number of servers.
+
 ## How to install 
 There are two ways to install:
   1. Download and run docker image (recommended)

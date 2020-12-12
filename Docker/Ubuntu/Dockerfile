@@ -16,9 +16,9 @@ RUN rm /etc/apache2/sites-available/*
 COPY ./000-default.conf /etc/apache2/sites-available/
 RUN systemctl restart apache2
 
-RUN mkdir /app 
 ARG INCUBATOR_VER=unknown
 RUN echo INCUBATOR_VER
+RUN mkdir /app
 RUN git clone https://github.com/k0perX-X/GRUB.git /app/
 
 RUN cp -r /app/output/ /app/output1/

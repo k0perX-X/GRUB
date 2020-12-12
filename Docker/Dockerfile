@@ -27,8 +27,6 @@ EXPOSE 433
 EXPOSE 5000
 
 RUN mkdir /app 
-ARG INCUBATOR_VER=unknown
-RUN echo INCUBATOR_VER
 RUN git clone https://github.com/k0perX-X/GRUB.git /app/
 
 RUN cp -r /app/output/ /app/output1/

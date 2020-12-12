@@ -2,7 +2,7 @@ FROM alpine
 
 MAINTAINER k0perXD@ya.ru
 
-COPY ./localtime /etc/localtime
+COPY localtime /etc/localtime
 
 RUN apk update 
 RUN apk add socat py-pip git bash gcc musl-dev
@@ -30,7 +30,7 @@ RUN mkdir /app
 RUN git clone https://github.com/k0perX-X/GRUB.git /app/
 
 RUN cp -r /app/output/ /app/output1/
-COPY ./bashscript /
+COPY bashscript /
 RUN chmod +x bashscript
 
 ENTRYPOINT bash bashscript 

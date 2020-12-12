@@ -5,7 +5,7 @@ MAINTAINER k0perXD@ya.ru
 COPY localtime /etc/localtime
 
 RUN apk update 
-RUN apk add socat py-pip git bash gcc musl-dev
+RUN apk add py-pip git bash gcc musl-dev openssl nginx
 RUN pip3 install flask requests pycryptodome
 
 #RUN apt-get update 

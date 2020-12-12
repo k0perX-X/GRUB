@@ -1,12 +1,12 @@
 #!/bin/bash
 CONTAINER_ALREADY_STARTED="CONTAINER_ALREADY_STARTED_PLACEHOLDER"
-if [ ! -e $CONTAINER_ALREADY_STARTED ]; then
-    touch $CONTAINER_ALREADY_STARTED
-    echo "-- First container startup --"
+if [ ! -e $CONTAINER_ALREADY_STARTED ];
+then
+  touch $CONTAINER_ALREADY_STARTED
+  echo "-- First container startup --"
 	cp -r /app/output1/* /app/output/
 	rm -rf /app/output1/ 
-	systemctl start apache2
-	cd /app/ 
+	cd /app/
 	export FLASK_APP=app.py 
 	flask run
 else

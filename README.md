@@ -17,15 +17,27 @@ Download image using the command:
   
     $ sudo docker pull k0per/grub
   
-#### 3. Installation
+#### 3. Create conteiner
+Run the command: 
+    
+    $ sudo docker create -t -i k0per/grub --name grub
+  
+#### 4. First start
 Run the command:
 
-    $ sudo docker run -i -p 80:80 -p 443:443 -v /path/to/the/data/folder:/app/output -t grub k0per/grub
+    $ sudo docker run -i -v /path/to/the/data/folder:/app/output --name grub k0per/grub
     
 Command arguments explanation: 
     
 * -i - gives control of terminal to docker
-* -p 80:80 -p 433:433 - associates host port with container's port
 * -v /path/to/the/data/folder:/app/output - mounts the host directory to the container directory
-* -t grub - gives the name "grub" to the container
+* --name grub - gives the name "grub" to the container
     
+#### 5. Using
+If you don't want to add GRUB to startup, you can run the program with the command:
+
+    $ sudo start -v /path/to/the/data/folder:/app/output -p 433:433 grub
+    
+Command arguments explanation: 
+    
+* -p 80:80 -p 433:433 - associates host port with container's port

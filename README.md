@@ -36,7 +36,7 @@ Command arguments explanation:
 #### 5. Using
 If you don't want to add GRUB to startup, you can run the program with the command:
 
-    $ sudo start -v /path/to/the/data/folder:/app/output -p 433:433 grub
+    $ sudo docker start -v /path/to/the/data/folder:/app/output -p 433:433 grub
     
 Command arguments explanation: 
     

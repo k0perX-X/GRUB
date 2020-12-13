@@ -15,7 +15,7 @@ Follow the instructions from the official website: https://docs.docker.com/engin
 #### 2. Download image
 Download image using the command:
 
-- Alpine container (recomended):
+- Alpine container (recommended):
 
       $ sudo docker pull k0per/grub:alpine
   
@@ -23,7 +23,7 @@ Download image using the command:
 
       $ sudo docker pull k0per/grub:ubuntu
 
-#### 3. Create conteiner
+#### 3. Create container
 Run the command: 
     
     $ sudo docker create -t -i k0per/grub --name grub
@@ -45,5 +45,3 @@ If you don't want to add GRUB to startup, you can run the program with the comma
 
     $ sudo docker start grub
     
-    
-

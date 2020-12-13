@@ -7,11 +7,12 @@ then
 	cp -r /app/output1/* /app/output/
 	rm -rf /app/output1/ 
 	cd /app/
+	nginx
 	export FLASK_APP=app.py 
 	flask run
 else
-	systemctl start apache2
-	cd /app/ 
+  nginx
+	cd /app/
 	export FLASK_APP=app.py 
 	flask run
 fi

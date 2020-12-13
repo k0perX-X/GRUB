@@ -14,9 +14,15 @@ Follow the instructions from the official website: https://docs.docker.com/engin
 
 #### 2. Download image
 Download image using the command:
+
+- Alpine container (recomended):
+
+      $ sudo docker pull k0per/grub:alpine
   
-    $ sudo docker pull k0per/grub
-  
+- Ubuntu container:
+
+      $ sudo docker pull k0per/grub:ubuntu
+
 #### 3. Create conteiner
 Run the command: 
     

@@ -25,11 +25,27 @@ def unpad(text):
     return text[:j]
 
 
+def stringing(byte_string):
+    s = ''
+    for i in byte_string:
+        s += chr(i)
+    return s
+
+
+def unstringing(s):
+    byte_string = b''
+    for i in s:
+        byte_string += bytes([ord(i)])
+    return byte_string
+
+
 def encrypt(num_key, s):
     des = DES.new(encrypt_keys[num_key], DES.MODE_ECB)
+    #return stringing(des.encrypt(pad(s)))
     return des.encrypt(pad(s))
 
 
 def decrypt(num_key, s):
     des = DES.new(encrypt_keys[num_key], DES.MODE_ECB)
+    #return unpad(des.decrypt(unstringing(s)))
     return unpad(des.decrypt(s))

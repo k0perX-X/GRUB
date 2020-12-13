@@ -16,6 +16,9 @@ RUN rm /etc/apache2/sites-available/*
 COPY ./000-default.conf /etc/apache2/sites-available/
 RUN systemctl restart apache2
 
+EXPOSE 80
+EXPOSE 433
+
 ARG INCUBATOR_VER=unknown
 RUN echo INCUBATOR_VER
 RUN mkdir /app

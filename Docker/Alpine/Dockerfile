@@ -11,7 +11,7 @@ RUN pip3 install flask requests pycryptodome
 RUN adduser -D -g 'www' www
 RUN rm /etc/nginx/nginx.conf
 COPY nginx.conf /etc/nginx/
-RUN cd /etc/nginx ; mkdir ssl ; cd ssl ; openssl req -new -x509 -days 1461 -nodes -out cert.crt -keyout cert.key -outform CRT -subj "/C=RU/ST=SPb/L=SPb/O=Global Security/OU=IT Department/CN=test.dmosk.local/CN=test"
+RUN cd /etc/nginx ; mkdir ssl ; cd ssl ; openssl req -new -x509 -days 1461 -nodes -out cert.pem -keyout cert.key -subj "/C=RU/ST=SPb/L=SPb/O=Global Security/OU=IT Department/CN=test.dmosk.local/CN=test"
 RUN nginx -t
 RUN chown -R www:www /var/lib/nginx
 

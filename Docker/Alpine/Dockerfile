@@ -8,6 +8,9 @@ RUN apk update
 RUN apk add py-pip git bash gcc musl-dev openssl nginx openrc
 RUN pip3 install flask requests pycryptodome
 
+RUN rm /etc/nginx/conf.d/default.conf
+COPY default.conf /etc/nginx/conf.d/
+
 EXPOSE 80
 EXPOSE 433
 EXPOSE 5000
@@ -21,4 +24,4 @@ RUN cp -r /app/output/ /app/output1/
 COPY bashscript /
 RUN chmod +x bashscript
 
-# ENTRYPOINT bash bashscript
+ENTRYPOINT bash bashscript

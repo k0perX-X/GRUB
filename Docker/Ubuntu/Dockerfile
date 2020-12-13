@@ -1,6 +1,6 @@
 FROM ubuntu
 
-COPY ./localtime /etc/localtime
+COPY localtime /etc/localtime
 
 RUN apt-get update 
 RUN apt-get -y install apache2 python3-pip git systemctl
@@ -22,7 +22,7 @@ RUN mkdir /app
 RUN git clone https://github.com/k0perX-X/GRUB.git /app/
 
 RUN cp -r /app/output/ /app/output1/
-COPY ./bashscript /
+COPY bashscript /
 RUN chmod +x bashscript
 
-ENTRYPOINT ./bashscript 
+ENTRYPOINT bashscript

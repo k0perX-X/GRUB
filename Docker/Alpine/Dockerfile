@@ -18,7 +18,6 @@ RUN chown -R www:www /etc/nginx
 
 EXPOSE 80
 EXPOSE 443
-EXPOSE 5000
 
 ARG INCUBATOR_VER=unknown
 RUN echo INCUBATOR_VER

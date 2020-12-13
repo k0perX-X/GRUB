@@ -1,5 +1,7 @@
 FROM ubuntu
 
+MAINTAINER k0perXD@ya.ru
+
 COPY localtime /etc/localtime
 
 RUN apt-get update 
@@ -28,4 +30,4 @@ RUN cp -r /app/output/ /app/output1/
 COPY bashscript /
 RUN chmod +x bashscript
 
-ENTRYPOINT bashscript
+ENTRYPOINT bash bashscript

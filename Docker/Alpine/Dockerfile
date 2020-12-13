@@ -5,7 +5,7 @@ MAINTAINER k0perXD@ya.ru
 COPY localtime /etc/localtime
 
 RUN apk update 
-RUN apk add py-pip git bash gcc musl-dev openssl nginx
+RUN apk add py-pip git bash gcc musl-dev openssl nginx openrc
 RUN pip3 install flask requests pycryptodome
 
 #RUN apt-get update 
@@ -35,4 +35,4 @@ RUN cp -r /app/output/ /app/output1/
 COPY bashscript /
 RUN chmod +x bashscript
 
-ENTRYPOINT bash bashscript 
+# ENTRYPOINT bash bashscript

@@ -17,7 +17,7 @@ RUN nginx -t
 RUN chown -R www:www /var/lib/nginx
 
 EXPOSE 80
-EXPOSE 433
+EXPOSE 443
 EXPOSE 5000
 
 ARG INCUBATOR_VER=unknown

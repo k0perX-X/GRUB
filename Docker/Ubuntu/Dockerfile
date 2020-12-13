@@ -17,7 +17,7 @@ COPY ./000-default.conf /etc/apache2/sites-available/
 RUN systemctl restart apache2
 
 EXPOSE 80
-EXPOSE 433
+EXPOSE 443
 
 ARG INCUBATOR_VER=unknown
 RUN echo INCUBATOR_VER

@@ -14,6 +14,7 @@ COPY nginx.conf /etc/nginx/
 RUN cd /etc/nginx ; mkdir ssl ; cd ssl ; openssl req -new -x509 -days 1461 -nodes -out cert.pem -keyout cert.key -subj "/C=RU/ST=SPb/L=SPb/O=Global Security/OU=IT Department/CN=test.dmosk.local/CN=test"
 RUN nginx -t
 RUN chown -R www:www /var/lib/nginx
+RUN chown -R www:www /etc/nginx
 
 EXPOSE 80
 EXPOSE 443

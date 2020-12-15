@@ -41,11 +41,11 @@ def unstringing(s):
 
 def encrypt(num_key, s):
     des = DES.new(encrypt_keys[num_key], DES.MODE_ECB)
-    #return stringing(des.encrypt(pad(s)))
-    return des.encrypt(pad(s))
+    return stringing(des.encrypt(pad(s)))
+    #return des.encrypt(pad(s))
 
 
 def decrypt(num_key, s):
     des = DES.new(encrypt_keys[num_key], DES.MODE_ECB)
-    #return unpad(des.decrypt(unstringing(s)))
-    return unpad(des.decrypt(s))
+    return unpad(des.decrypt(unstringing(s)))
+    #return unpad(des.decrypt(s))

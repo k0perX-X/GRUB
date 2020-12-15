@@ -40,7 +40,8 @@ except:
     saved_database = eval(f.read())
     f.close()
 
-urllib3.disable_warnings()  # отключает уведомление о не верифицированном ssl
+if not debug:
+    urllib3.disable_warnings()  # отключает уведомление о не верифицированном ssl
 
 # data
 stack = []
@@ -221,7 +222,7 @@ def new_leader():
 
     # encrypt
     try:
-        r = decrypt(r['1'], eval(r['2']))
+        r = decrypt(r['1'], r['2'])
     except Exception as e:
         logging.error(time.ctime(time.time()) + f"new_leader - json recognition - encode - json - {r}")
         return {"status": "error", "type error": "json recognition", "json recognition": "encode"}
@@ -252,7 +253,7 @@ def func_votes():
 
     # encrypt
     try:
-        r = decrypt(r['1'], eval(r['2']))
+        r = decrypt(r['1'], r['2'])
     except Exception as e:
         logging.warning(time.ctime(time.time()) + f"func_votes - json recognition - encode- json - {r}")
         return {"status": "error", "type error": "json recognition", "json recognition": "encode"}
@@ -303,7 +304,7 @@ def func_leader():
                 '2': str(encrypt(x, json.dumps(j).encode('utf32')))
             })
             r = r.json()
-            r = decrypt(r['1'], eval(r['2']))
+            r = decrypt(r['1'], r['2'])
             r = json.loads(r)
             stacks += r
         else:
@@ -313,7 +314,7 @@ def func_leader():
                     '2': str(encrypt(x, json.dumps(j).encode('utf32')))
                 })
                 r.json()
-                r = decrypt(r['1'], eval(r['2']))
+                r = decrypt(r['1'], r['2'])
                 r = json.loads(r)
                 stacks += r
                 ballot.cancel()
@@ -396,7 +397,7 @@ def follower():
 
     try:
         r = json.loads(request.data)
-        r = decrypt(r['1'], eval(r['2']))
+        r = decrypt(r['1'], r['2'])
         r = json.loads(r)
         if r['ip'] == leader:
             if leader != myip:
@@ -440,7 +441,7 @@ def auth_server():
     if myip == leader:
         try:
             r = json.loads(request.data)
-            r = decrypt(r['1'], eval(r['2']))
+            r = decrypt(r['1'], r['2'])
             r = json.loads(r)
             server_ips[r['login']] = r['ip']
             return {'status': 'ok'}
@@ -625,7 +626,7 @@ def authentication(ip, my_login):
             leader = ip
             break
         else:
-            r = decrypt(r['leader']['1'], eval(r['leader']['2']))
+            r = decrypt(r['leader']['1'], r['leader']['2'])
             ip = r
 
 

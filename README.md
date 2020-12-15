@@ -45,7 +45,7 @@ Stop command:
 
     $ sudo docker stop grub
 
-Delete command (the data in the folder specified at the first start remains): 
+Delete command (the data in the folder specified at the first start will be saved): 
 
     $ sudo docker rm grub
 

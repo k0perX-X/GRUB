@@ -34,7 +34,7 @@ Command arguments explanation:
 * -v /path/to/the/data/folder:/app/output - mounts the host directory to the container directory
 * --name grub - gives the name "grub" to the container
 * -p 80:80 -p 443:443 - associates host port with the container's port
-* k0per/grub:alpine (ubuntu) - target image (alpine or ubuntu) 
+* k0per/grub:alpine (k0per/grub:ubuntu) - target image (alpine or ubuntu) 
     
 #### 4. Using
 Start command:

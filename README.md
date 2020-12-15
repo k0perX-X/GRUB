@@ -66,8 +66,8 @@ Copy output/encrypt keys.py from another server or generate a new one with outpu
 #### 4. Using
 Run commands: 
 
-        $ export FLASK_APP=app.py 
-        $ flask run
+    $ export FLASK_APP=app.py 
+    $ flask run
 
 
   

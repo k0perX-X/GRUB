@@ -2,7 +2,7 @@ FROM ubuntu
 
 MAINTAINER k0perXD@ya.ru
 
-COPY localtime /etc/localtime
+COPY Docker/Ubuntu/localtime /etc/localtime
 
 RUN apt-get update 
 RUN apt-get -y install apache2 python3-pip git systemctl
@@ -15,19 +15,17 @@ RUN a2enmod rewrite
 RUN a2enmod proxy
 RUN a2enmod proxy_http
 RUN rm /etc/apache2/sites-available/*
-COPY ./000-default.conf /etc/apache2/sites-available/
+COPY Docker/Ubuntu/000-default.conf /etc/apache2/sites-available/
 RUN systemctl restart apache2
 
 EXPOSE 80
 EXPOSE 443
 
-ARG INCUBATOR_VER=unknown
-RUN echo INCUBATOR_VER
 RUN mkdir /app
-RUN git clone https://github.com/k0perX-X/GRUB.git /app/
+COPY . /app/
 
 RUN cp -r /app/output/ /app/output1/
-COPY bashscript /
+COPY Docker/Ubuntu/bashscript /
 RUN chmod +x bashscript
 
 ENTRYPOINT bash bashscript

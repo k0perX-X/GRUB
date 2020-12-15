@@ -1,11 +1,3 @@
-# first_dict = {'124': '♛ ♚', '123': '♛ ♚'}
-# second_dict = {'124': '♛ ♚', '12': '♛ ♚'}
-# value = { k : second_dict[k] for k in set(second_dict) - set(first_dict) }
-# print(value) # новые
-# first_dict, second_dict = second_dict, first_dict
-# value = { k : second_dict[k] for k in set(second_dict) - set(first_dict) }
-# print(value) # удалённые
-
 import os.path
 
 if not os.path.exists('output/encrypt_keys_generator.py'):

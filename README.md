@@ -4,8 +4,8 @@ Simple and lightweight RAFT algorithm. Designed for connecting small databases o
 
 ## How to install 
 There are two ways to install:
-  1. Download and run docker image (recommended)
-  2. Download the git and run it with flask
+  1. Installation using docker (recommended)
+  2. Installation without using docker
  
 ### Installation using docker
 

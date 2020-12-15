@@ -49,3 +49,25 @@ Delete command (the data in the folder specified at the first start remains):
 
     $ sudo docker rm grub
 
+### Installation without using docker
+
+#### 1. Download files: 
+
+    $ git pull https://github.com/k0perX-X/GRUB.git
+
+#### 2. Installing python packages
+Run command: 
+
+    $ sudo pip3 install flask requests pycryptodome   
+
+#### 3. Setting up
+Copy output/encrypt keys.py from another server or generate a new one with output/encrypt_keys_generator.py.
+
+#### 4. Using
+Run commands: 
+
+        $ export FLASK_APP=app.py 
+        $ flask run
+
+
+  

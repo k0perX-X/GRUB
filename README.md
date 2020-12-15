@@ -7,7 +7,7 @@ There are two ways to install:
   1. Download and run docker image (recommended)
   2. Download the git and run it with flask
  
-### Using docker
+### Installation using docker
 
 #### 1. Install docker
 Follow the instructions from the official website: https://docs.docker.com/engine/install/
@@ -33,10 +33,19 @@ Command arguments explanation:
 * -i - gives control of terminal to docker
 * -v /path/to/the/data/folder:/app/output - mounts the host directory to the container directory
 * --name grub - gives the name "grub" to the container
-* -p 80:80 -p 443:443 - associates host port with container's port
+* -p 80:80 -p 443:443 - associates host port with the container's port
+* k0per/grub:alpine (ubuntu) - target image (alpine or ubuntu) 
     
 #### 4. Using
-If you don't want to add GRUB to startup, you can run the program with the command:
+Start command:
 
     $ sudo docker start grub
     
+Stop command: 
+
+    $ sudo docker stop grub
+
+Delete command (the data in the folder specified at the first start remains): 
+
+    $ sudo docker rm grub
+

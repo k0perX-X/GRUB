@@ -88,13 +88,12 @@ key verification.
 
 User requests use a user authorization system, System requests use a data encryption system.
 
-###User requests
+### User requests
 
 
 All json requests contain "login" and "password". The password is transmitted in md5 hash format (utf8).
 
-####Query data from the database
-
+#### Query data from the database
 
 POST request to address: `https://ip(url)/data`
 
@@ -122,7 +121,7 @@ Answer:
     }
 }
 ```
-####Database add query
+#### Database add query
 POST request to address: `https://ip(url)/add`
 
 Request:
@@ -146,7 +145,7 @@ Answers:
 {"status": "error", "type error": "wrong login/password"}
 {"status": "ok"}
 ```
-####Request to delete data from the database
+#### Request to delete data from the database
 POST request to address: `https://ip(url)/delete`
 
 Request:
@@ -171,7 +170,7 @@ Answers:
 {"status": "error", "type error": "wrong login/password"}
 {"status": "ok"}
 ```
-####Request to add a new user
+#### Request to add a new user
 To complete the request, the user must be in admin_logins.
 
 POST request to address: `https://ip(url)/add_user`

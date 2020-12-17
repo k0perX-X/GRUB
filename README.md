@@ -2,6 +2,20 @@
 
 Simple and lightweight RAFT algorithm. Designed for connecting small databases on a large number of servers.
 
+## Table of contents
+
+1. [How to install](#How to install)
+   1. [Installation using docker](#Installation using docker)
+   2. [Installation without using docker](#Installation without using docker)
+2. [How to use](#How to use)
+    1. [Types of requests](#Types of requests)
+    2. [User requests](#User requests)
+       1. [Query data from the database](#Query data from the database)
+       2. [Database add query](#Database add query)
+       3. [Request to delete data from the database](#Request to delete data from the database)
+       4. [Request to add a new user](#Request to add a new user)
+    3. [System requests](#System requests)
+
 ## How to install 
 There are two ways to install:
   1. Installation using docker (recommended)
@@ -75,7 +89,7 @@ All communications with servers are carried out via json POST requests.
 When sending requests over a local network, it is recommended to use the http protocol. 
 For requests outside the local network, the https protocol should be used without ssl 
 key verification.
-### Types of requests:
+### Types of requests
 
 1. User requests:
     * query data from the database

@@ -383,7 +383,7 @@ def func_leader():
                 except:
                     pass
         elif deystv[1] == 3:
-            user_logins = {**user_logins, **deystv[2]}
+            user_logins = {**user_logins, deystv[2]['login']: deystv[2]['password']}
 
 
 # Функция фоловера
@@ -461,7 +461,7 @@ def auth_server():
 # Коды операций
 # 1 - добавить/изменить элемент(-ы) [время, код операции, имя базы, значения]
 # 2 - удалить элемент [время, код операции, имя базы, ключ]
-# 3 - добавить пользователя [время, код операции, {username, password}]
+# 3 - добавить пользователя [время, код операции, {login, password}]
 # stack - массив массивов [[время, код операции, данные1, данные2, ...], ...]
 
 
@@ -563,7 +563,7 @@ def add_user():
     # 	'login'
     # 	'password' md5
     # 	'user': {
-    # 		'username'
+    # 		'login'
     #		'password' md5
     # 	}
     # }
@@ -578,14 +578,16 @@ def add_user():
         return {"status": "error", "type error": 'json is not full'}
     if type(r['login']) != str or type(r['password']) != str or type(r['user']) != dict:
         return {"status": "error", "type error": 'json is not full'}
-    if 'username' not in r['user'] or 'password' not in r['user']:
+    if 'login' not in r['user'] or 'password' not in r['user']:
         return {"status": "error", "type error": 'json is not full'}
-    if type(r['user']['username']) != str or type(r['user']['password']) != str:
+    if type(r['user']['login']) != str or type(r['user']['password']) != str:
         return {"status": "error", "type error": 'json is not full'}
 
     # аутентификация
-    if r['login'] not in admin_logins:
+    if r['login'] not in user_logins:
         return {"status": "error", "type error": "wrong login/password"}
+    if r['login'] not in admin_logins:
+        return {"status": "error", "type error": "user not admin"}
     if r['password'] != user_logins[r['login']]:
         return {"status": "error", "type error": "wrong login/password"}
 

@@ -24,25 +24,35 @@ There are two ways to install:
 ### Installation using docker
 
 #### 1. Install docker
+
 Follow the instructions from the official website: https://docs.docker.com/engine/install/
 
 #### 2. Download image
+
 Download image using the command:
 
 - Alpine container (recommended):
+  
     ```shell
     $ sudo docker pull k0per/grub:alpine
     ```
+  
 - Ubuntu container:
+  
     ```shell
     $ sudo docker pull k0per/grub:ubuntu
     ```
+  
 #### 3. First start
+
 Run the command:
+
 ```shell
 $ sudo docker run -i -v /path/to/the/data/folder:/app/output -p 80:80 -p 443:443 --name grub k0per/grub:alpine
 ```
+
 Command arguments explanation: 
+
 ```
 -i                                        — gives control of terminal to docker
 -v /path/to/the/data/folder:/app/output   — mounts the host directory to the container directory
@@ -50,45 +60,66 @@ Command arguments explanation:
 -p 80:80 -p 443:443                       — associates host port with the container's port
 k0per/grub:alpine (k0per/grub:ubuntu)     — target image (alpine or ubuntu) 
 ``` 
+
 #### 4. Using
+
 Start command:
+
 ```shell
 $ sudo docker start grub
 ```
+
 Stop command:
+
 ```shell
 $ sudo docker stop grub
 ```
+
 Delete command (the data in the folder specified at the first start will be saved): 
+
 ```shell
 $ sudo docker rm grub
 ```
+
 ### Installation without using docker
 
-#### 1. Download files: 
+#### 1. Download files
+
+Run command: 
+
 ```shell
 $ git pull https://github.com/k0perX-X/GRUB.git
 ```
+
 #### 2. Installing python packages
+
 Run command: 
+
 ```shell
 $ sudo pip3 install flask requests pycryptodome   
 ```
+
 #### 3. Setting up
+
 Copy output/encrypt keys.py from another server or generate a new one with output/encrypt_keys_generator.py.
 
 #### 4. Using
+
 Run commands: 
+
 ```shell
 $ export FLASK_APP=app.py 
 $ flask run
 ```
+
 ## How to use
+
 All communications with servers are carried out via json POST requests. 
 
 When sending requests over a local network, it is recommended to use the http protocol. 
 For requests outside the local network, the https protocol should be used without ssl 
 key verification.
+
 ### Types of requests
 
 1. User requests:
@@ -111,13 +142,16 @@ All json requests contain "login" and "password". The password is transmitted in
 POST request to address: `https://ip(url)/data`
 
 Request:
+
 ```json
 {
     "login": "username",
     "password": "md5 hash password"
 }
 ```
+
 Answer: 
+
 ```json
 {
     "name of databese1": 
@@ -134,10 +168,12 @@ Answer:
     }
 }
 ```
+
 #### Database add query
 POST request to address: `https://ip(url)/add`
 
 Request:
+
 ```json
 {
     "login": "username",
@@ -151,17 +187,22 @@ Request:
     }
 }
 ```
+
 Answers: 
+
 ```json
 {"status": "error", "type error": "json is not full"}
 {"status": "error", "type error": "unknown database"}
 {"status": "error", "type error": "wrong login/password"}
 {"status": "ok"}
 ```
+
 #### Request to delete data from the database
+
 POST request to address: `https://ip(url)/delete`
 
 Request:
+
 ```json
 {
     "login": "username",
@@ -177,18 +218,22 @@ Request:
 ```
 
 Answers: 
+
 ```json
 {"status": "error", "type error": "json is not full"}
 {"status": "error", "type error": "unknown database"}
 {"status": "error", "type error": "wrong login/password"}
 {"status": "ok"}
 ```
+
 #### Request to add a new user
+
 To complete the request, the user must be in admin_logins.
 
 POST request to address: `https://ip(url)/add_user`
 
 Request:
+
 ```json
 {
     "login": "username",
@@ -200,7 +245,9 @@ Request:
     }
 }
 ```
+
 Answers: 
+
 ```json
 {"status": "error", "type error": "json is not full"}
 {"status": "error", "type error": "unknown database"}
@@ -210,6 +257,7 @@ Answers:
 ```
 
 ### System requests
+
 System requests require the use of crypt.py and output/encrypt keys.py. 
 output/encrypt keys.py must match the file on the target server. 
 Usage example:

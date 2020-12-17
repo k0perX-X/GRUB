@@ -90,7 +90,6 @@ User requests use a user authorization system, System requests use a data encryp
 
 ### User requests
 
-
 All json requests contain "login" and "password". The password is transmitted in md5 hash format (utf8).
 
 #### Query data from the database
@@ -196,4 +195,27 @@ Answers:
 {"status": "ok"}
 ```
 
+### System requests
+System requests require the use of crypt.py and output/encrypt keys.py. 
+output/encrypt keys.py must match the file on the target server. 
+Usage example:
 
+#### Status request
+
+```python
+import crypt, requests, json
+status = requests.get(f'https://{ip}/status')
+status = status.json()
+status = crypt.decrypt(status['1'], status['2'])
+status = json.loads(status)
+```
+
+#### Debug request
+
+```python
+import crypt, requests, json
+debug = requests.get(f'http://{ip}/debug')
+debug = debug.json()
+debug = crypt.decrypt(debug['1'], debug['2'])
+debug = json.loads(debug)
+```

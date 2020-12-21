@@ -21,11 +21,9 @@ except:
 
 from random import randint
 
-
 if lose_import:
     print('\n\n\n')
 print(Fore.BLUE + 'Welcome to the GRUB setup\n' + Style.RESET_ALL)
-
 
 while True:
     while True:
@@ -103,12 +101,12 @@ while True:
             break
     print()
 
-    config = f"login = '{login}'\n"
-    f"base_cycle_time = {base_cycle_time}"
-    f"multiplier_update_cycle_time = {multiplier_update_cycle_time}\n"
-    f"first = {first}\n"
-    f"start_leader = '{start_leader}'\n"
-    f"debug = {debug}\n"
+    config = f"login = '{login}'\n" + \
+             f"base_cycle_time = {base_cycle_time}" + \
+             f"multiplier_update_cycle_time = {multiplier_update_cycle_time}\n" + \
+             f"first = {first}\n" + \
+             f"start_leader = '{start_leader}'\n" + \
+             f"debug = {debug}\n"
     print('Your finished config file:\n' + config)
 
     ss = input('Is the data correct? (y/n)? ')

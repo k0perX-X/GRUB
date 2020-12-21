@@ -72,7 +72,8 @@ print()
 tf = True
 while tf:
     multiplier_update_cycle_time = input(
-        'Enter the number of cycles after which the cycle time will be updated (must be common to one network) (default 100): ')
+        'Enter the number of cycles after which the cycle time will be updated '
+        '(must be common to one network) (default 100): ')
     if multiplier_update_cycle_time == '':
         multiplier_update_cycle_time = 100
         tf = False
@@ -177,7 +178,7 @@ else:
     f = open('output/encrypt_keys.py', 'w')
 f.write('encrypt_keys = [\n')
 for i in range(1000):
-    f.write('\t' + str(bytes([randint(0, 255) for i in range(8)])) + ",\n")
+    f.write('\t' + str(bytes([randint(0, 255) for j in range(8)])) + ",\n")
 f.write(']')
 f.close()
 print('encrypt_keys.py has been generated.')

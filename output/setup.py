@@ -161,7 +161,7 @@ while True:
 
 while True:
     print('Enter the names of the databases.\n'
-          'Example: name1, name2\n')
+          'Example: name1, name2')
     print(Fore.RED +
           'Attention!\n'
           'Always comma and 1 space between names\n'

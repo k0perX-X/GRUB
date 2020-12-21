@@ -139,7 +139,6 @@ while True:
         pass
     elif ss[0] == 'y' or ss[0] == 'Y':
         break
-print()
 
 while True:
     print('Enter administrator account for this server.\n'
@@ -147,13 +146,16 @@ while True:
     print(Fore.RED +
           'Attention!\n'
           'Always comma and 1 space between names\n'
-          'name1, name 1, name1 , - are not the same\n' + Style.RESET_ALL)
+          'name1, name 1, name1 , - are not the same' + Style.RESET_ALL)
     s = input()
     admin_logins = []
     for ss in s.split(', '):
         if ss != '':
             admin_logins.append(ss)
     print(f'You entered: {admin_logins}')
+    for admin_login in admin_logins:
+        if admin_login not in user_logins:
+            print(Fore.RED + 'WARNING: ' + Style.RESET_ALL + f'{admin_login} not in user_logins')
     ss = input('Is the data correct? (y/n)? ')
     ss = ss.strip()
     print()
@@ -161,7 +163,6 @@ while True:
         pass
     elif ss[0] == 'y' or ss[0] == 'Y':
         break
-print()
 
 while True:
     print('Enter the names of the databases.\n'
@@ -169,7 +170,7 @@ while True:
     print(Fore.RED +
           'Attention!\n'
           'Always comma and 1 space between names\n'
-          'name1, name 1, name1 , - are not the same\n' + Style.RESET_ALL)
+          'name1, name 1, name1 , - are not the same' + Style.RESET_ALL)
     s = input()
     databases = []
     for ss in s.split(', '):
@@ -183,7 +184,6 @@ while True:
         pass
     elif ss[0] == 'y' or ss[0] == 'Y':
         break
-print()
 
 if __name__ == '__main__':
     f = open('config.py', 'w', encoding='utf8')

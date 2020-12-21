@@ -21,6 +21,7 @@ except:
 
 from random import randint
 
+
 if lose_import:
     print('\n\n\n')
 print(Fore.BLUE + 'Welcome to the GRUB setup\n' + Style.RESET_ALL)
@@ -102,13 +103,12 @@ while True:
             break
     print()
 
-    config = f'''login = '{login}'
-base_cycle_time = {base_cycle_time}
-multiplier_update_cycle_time = {multiplier_update_cycle_time}
-first = {first}
-start_leader = '{start_leader}'
-debug = {debug}
-'''
+    config = f"login = '{login}'\n"
+    f"base_cycle_time = {base_cycle_time}"
+    f"multiplier_update_cycle_time = {multiplier_update_cycle_time}\n"
+    f"first = {first}\n"
+    f"start_leader = '{start_leader}'\n"
+    f"debug = {debug}\n"
     print('Your finished config file:\n' + config)
 
     ss = input('Is the data correct? (y/n)? ')
@@ -120,11 +120,12 @@ debug = {debug}
         break
 
 while True:
-    print('''Enter usernames and their passwords. 
-Example: name1: password1, name2: password2''')
-    print(Fore.RED + '''Attention! 
-Always comma and 1 space between users and colon and 1 space between name and password
-name1, name 1, name1 , - are not the same''' + Style.RESET_ALL)
+    print('Enter usernames and their passwords.\n'
+          'Example: name1: password1, name2: password2')
+    print(Fore.RED +
+          'Attention! \n'
+          'Always comma and 1 space between users and colon and 1 space between name and password\n'
+          'name1, name 1, name1 , - are not the same' + Style.RESET_ALL)
     s = input()
     user_logins = {}
     for ss in s.split(', '):
@@ -141,11 +142,12 @@ name1, name 1, name1 , - are not the same''' + Style.RESET_ALL)
         break
 
 while True:
-    print('''Enter administrator account for this server. 
-Example: name1, name2''')
-    print(Fore.RED + '''Attention! 
-Always comma and 1 space between names
-name1, name 1, name1 , - are not the same''' + Style.RESET_ALL)
+    print('Enter administrator account for this server.\n'
+          'Example: name1, name2')
+    print(Fore.RED +
+          'Attention!\n'
+          'Always comma and 1 space between names\n'
+          'name1, name 1, name1 , - are not the same\n' + Style.RESET_ALL)
     s = input()
     admin_logins = []
     for ss in s.split(', '):
@@ -160,11 +162,12 @@ name1, name 1, name1 , - are not the same''' + Style.RESET_ALL)
         break
 
 while True:
-    print('''Enter the names of the databases. 
-Example: name1, name2''')
-    print(Fore.RED + '''Attention! 
-Always comma and 1 space between names
-name1, name 1, name1 , - are not the same''' + Style.RESET_ALL)
+    print('Enter the names of the databases.\n'
+          'Example: name1, name2\n')
+    print(Fore.RED +
+          'Attention!\n'
+          'Always comma and 1 space between names\n'
+          'name1, name 1, name1 , - are not the same\n' + Style.RESET_ALL)
     s = input()
     databases = []
     for ss in s.split(', '):
@@ -177,7 +180,6 @@ name1, name 1, name1 , - are not the same''' + Style.RESET_ALL)
         pass
     elif ss[0] == 'y' or ss[0] == 'Y':
         break
-
 
 if __name__ == '__main__':
     f = open('config.py', 'w', encoding='utf8')
@@ -228,7 +230,8 @@ if __name__ == '__main__':
     print(Fore.RED + 'You can change the config in config.py file.' + Style.RESET_ALL)
     if not first:
         print(Fore.RED +
-              'REMEMBER TO COPY THE FILE encrypt_keys.py FROM THE ORIGINAL SERVER ON THE NETWORK.' + Style.RESET_ALL)
+              'REMEMBER TO COPY THE FILE encrypt_keys.py FROM THE ORIGINAL SERVER ON THE NETWORK.' +
+              Style.RESET_ALL)
 else:
     print(Fore.RED + 'You can change the config in output/config.py file.' + Style.RESET_ALL)
     if not first:

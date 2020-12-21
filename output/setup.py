@@ -66,7 +66,7 @@ while True:
             tf = False
         else:
             try:
-                base_cycle_time = int(base_cycle_time)
+                base_cycle_time = float(base_cycle_time)
                 tf = False
             except:
                 pass
@@ -102,7 +102,7 @@ while True:
     print()
 
     config = f"login = '{login}'\n" + \
-             f"base_cycle_time = {base_cycle_time}" + \
+             f"base_cycle_time = {base_cycle_time}\n" + \
              f"multiplier_update_cycle_time = {multiplier_update_cycle_time}\n" + \
              f"first = {first}\n" + \
              f"start_leader = '{start_leader}'\n" + \

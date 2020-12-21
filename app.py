@@ -19,6 +19,8 @@ import timeset
 from threading import Timer, Thread
 import urllib3
 
+# TODO: Перепроверить как работает изменение cycle_time при большом разрыве пингов серверов
+
 try:
     f = open('output/user_logins.py', 'r', encoding='utf32')
     saved_user_logins = eval(f.read())
@@ -39,7 +41,6 @@ except:
 f = open('output/admin_logins.py', 'r', encoding='utf32')
 admin_logins = eval(f.read())
 f.close()
-
 
 if not debug:
     urllib3.disable_warnings()  # отключает уведомление о не верифицированном ssl

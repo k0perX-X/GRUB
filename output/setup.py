@@ -50,11 +50,41 @@ while True:
 
     start_leader = ''
     if not first:
+        import os.path
+        path = ''
+        if __name__ == '__main__':
+            path = 'config.py'
+        else:
+            path = 'output/config.py'
+        if not os.path.exists('output/encrypt_keys.py'):
+            print(Fore.RED + 'Before running setup.py, copy the files from the first server.' + Style.RESET_ALL)
+            exit()
         while True:
             start_leader = input('Enter the ip (url) of the server already on the network: ')
             if login.find("'") != -1:
                 print("Please enter a name without the symbol '")
             else:
+                if __name__ == '__main__':
+                    f = open('config.py', 'r', encoding='utf8')
+                else:
+                    f = open('output/config.py', 'r', encoding='utf8')
+                text = f.read()
+                f.close()
+                text = text.split('\n')
+                for i in range(len(text)):
+                    if text[i].find('first') != -1:
+                        text[i] = f'first = {first}'
+                    elif text[i].find('start_leader') != -1:
+                        text[i] = f"start_leader = '{start_leader}'"
+                    elif text[i].find('login') != -1:
+                        text[i] = f"login = '{login}'"
+                if __name__ == '__main__':
+                    f = open('config.py', 'w', encoding='utf8')
+                else:
+                    f = open('output/config.py', 'w', encoding='utf8')
+                f.write('\n'.join(text))
+                f.close()
+                exit()
                 break
         print()
 

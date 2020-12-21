@@ -183,7 +183,14 @@ f.close()
 print('encrypt_keys.py has been generated.')
 
 if __name__ == '__main__':
-    print(Fore.RED + 'You can change the config in config.py file' + Style.RESET_ALL)
+    print(Fore.RED + 'You can change the config in config.py file.' + Style.RESET_ALL)
+    if not first:
+        print(Fore.RED +
+              'REMEMBER TO COPY THE FILE encrypt_keys.py FROM THE ORIGINAL SERVER ON THE NETWORK.' + Style.RESET_ALL)
 else:
-    print(Fore.RED + 'You can change the config in output/config.py file' + Style.RESET_ALL)
+    print(Fore.RED + 'You can change the config in output/config.py file.' + Style.RESET_ALL)
+    if not first:
+        print(Fore.RED +
+              'REMEMBER TO COPY THE FILE output/encrypt_keys.py FROM THE ORIGINAL SERVER ON THE NETWORK.' +
+              Style.RESET_ALL)
 print()

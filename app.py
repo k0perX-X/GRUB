@@ -1,9 +1,5 @@
 import os.path
 
-if not os.path.exists('output/encrypt_keys_generator.py'):
-    print("""БЛЯТЬ ПИЗДЕЦ""")
-    exit()
-
 if not os.path.exists('output/encrypt_keys.py'):
     print("""The file output/encrypt keys.py is missing.
 If this is your first server on the network, generate a file using output/encrypt_keys_generator.py.
@@ -17,7 +13,7 @@ import time
 import requests
 import traceback
 from crypt import decrypt, encrypt
-from output.config import login, first, start_leader, debug, base_cycle_time, multiplier_update_cycle_time, admin_logins
+from output.config import login, first, start_leader, debug, base_cycle_time, multiplier_update_cycle_time
 from random import randint, choice
 import timeset
 from threading import Timer, Thread
@@ -39,6 +35,11 @@ except:
     f = open('output/database_backup.py', 'r', encoding='utf32')
     saved_database = eval(f.read())
     f.close()
+
+f = open('output/admin_logins.py', 'r', encoding='utf32')
+admin_logins = eval(f.read())
+f.close()
+
 
 if not debug:
     urllib3.disable_warnings()  # отключает уведомление о не верифицированном ssl

@@ -8,6 +8,7 @@
       <excludeFolder url="file://$MODULE_DIR$/venv" />
       <excludeFolder url="file://$MODULE_DIR$/venvw" />
       <excludeFolder url="file://$MODULE_DIR$/venvwindows" />
+      <excludeFolder url="file://$MODULE_DIR$/venvw1" />
     </content>
     <orderEntry type="jdk" jdkName="Python 3.9 (GRUB)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />

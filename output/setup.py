@@ -114,7 +114,9 @@ debug = {debug}
     ss = input('Is the data correct? (y/n)? ')
     ss = ss.strip()
     print()
-    if ss[0] == 'y' or ss[0] == 'Y':
+    if len(ss) == 0:
+        pass
+    elif ss[0] == 'y' or ss[0] == 'Y':
         break
 
 while True:
@@ -126,13 +128,14 @@ name1, name 1, name1 , - are not the same''' + Style.RESET_ALL)
     s = input()
     user_logins = {}
     for ss in s.split(', '):
-        ss = ss.split(': ')
-        user_logins[ss[0]] = md5(ss[1].encode('utf32')).hexdigest()
+        if ss.find(': ') != -1:
+            ss = ss.split(': ')
+            user_logins[ss[0]] = md5(ss[1].encode('utf32')).hexdigest()
     print(f'You entered: {user_logins}')
     ss = input('Is the data correct? (y/n)? ')
     ss = ss.strip()
     print()
-    if len(s) == 0:
+    if len(ss) == 0:
         pass
     elif ss[0] == 'y' or ss[0] == 'Y':
         break
@@ -151,7 +154,7 @@ name1, name 1, name1 , - are not the same''' + Style.RESET_ALL)
     ss = input('Is the data correct? (y/n)? ')
     ss = ss.strip()
     print()
-    if len(s) == 0:
+    if len(ss) == 0:
         pass
     elif ss[0] == 'y' or ss[0] == 'Y':
         break
@@ -170,7 +173,7 @@ name1, name 1, name1 , - are not the same''' + Style.RESET_ALL)
     ss = input('Is the data correct? (y/n)? ')
     ss = ss.strip()
     print()
-    if len(s) == 0:
+    if len(ss) == 0:
         pass
     elif ss[0] == 'y' or ss[0] == 'Y':
         break

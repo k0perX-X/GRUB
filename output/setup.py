@@ -98,76 +98,79 @@ while True:
             break
     print()
 
-    s = f'''login = '{login}'
-    base_cycle_time = {base_cycle_time}
-    multiplier_update_cycle_time = {multiplier_update_cycle_time}
-    first = {first}
-    start_leader = '{start_leader}'
-    debug = {debug}
-    '''
-    print('Your finished config file:\n' + s)
+    config = f'''login = '{login}'
+base_cycle_time = {base_cycle_time}
+multiplier_update_cycle_time = {multiplier_update_cycle_time}
+first = {first}
+start_leader = '{start_leader}'
+debug = {debug}
+'''
+    print('Your finished config file:\n' + config)
 
     ss = input('Is the data correct? (y/n)? ')
     ss = ss.strip()
     if ss[0] == 'y' or ss[0] == 'Y':
         break
-
+    print()
 
 while True:
     print('''Enter usernames and their passwords. 
-    Example: name1: password1, name2: password2''')
+Example: name1: password1, name2: password2''')
     print(Fore.RED + '''Attention! 
-    Always comma and 1 space between users and colon and 1 space between name and password
-    name1, name 1, name1 , - are not the same''' + Style.RESET_ALL)
+Always comma and 1 space between users and colon and 1 space between name and password
+name1, name 1, name1 , - are not the same''' + Style.RESET_ALL)
     s = input()
     user_logins = {}
     for ss in s.split(', '):
         ss = ss.split(': ')
         user_logins[ss[0]] = md5(ss[1].encode('utf32')).hexdigest()
-    print(f'You entered: {user_logins}\n')
+    print(f'You entered: {user_logins}')
     ss = input('Is the data correct? (y/n)? ')
     ss = ss.strip()
     if ss[0] == 'y' or ss[0] == 'Y':
         break
+    print()
 
 while True:
     print('''Enter administrator account for this server. 
-    Example: name1, name2''')
+Example: name1, name2''')
     print(Fore.RED + '''Attention! 
-    Always comma and 1 space between names
-    name1, name 1, name1 , - are not the same''' + Style.RESET_ALL)
+Always comma and 1 space between names
+name1, name 1, name1 , - are not the same''' + Style.RESET_ALL)
     s = input()
     admin_logins = []
     for ss in s.split(', '):
         admin_logins.append(ss)
-    print(f'You entered: {admin_logins}\n')
+    print(f'You entered: {admin_logins}')
     ss = input('Is the data correct? (y/n)? ')
     ss = ss.strip()
     if ss[0] == 'y' or ss[0] == 'Y':
         break
+    print()
 
 while True:
     print('''Enter the names of the databases. 
-    Example: name1, name2''')
+Example: name1, name2''')
     print(Fore.RED + '''Attention! 
-    Always comma and 1 space between names
-    name1, name 1, name1 , - are not the same''' + Style.RESET_ALL)
+Always comma and 1 space between names
+name1, name 1, name1 , - are not the same''' + Style.RESET_ALL)
     s = input()
     databases = []
     for ss in s.split(', '):
         databases.append(ss)
-    print(f'You entered: {databases}\n')
+    print(f'You entered: {databases}')
     ss = input('Is the data correct? (y/n)? ')
     ss = ss.strip()
     if ss[0] == 'y' or ss[0] == 'Y':
         break
+    print()
 
 
 if __name__ == '__main__':
     f = open('config.py', 'w', encoding='utf8')
 else:
     f = open('output/config.py', 'w', encoding='utf8')
-f.write(s)
+f.write(config)
 f.close()
 
 if __name__ == '__main__':

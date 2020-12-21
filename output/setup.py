@@ -39,7 +39,9 @@ while True:
     while True:
         s = input('Is this your first server on the network (y/n)? ')
         s = s.strip()
-        if s[0] == 'y' or s[0] == 'Y':
+        if len(s) == 0:
+            pass
+        elif s[0] == 'y' or s[0] == 'Y':
             first = True
             break
         elif s[0] == 'n' or s[0] == 'N':
@@ -90,7 +92,9 @@ while True:
     debug = False
     while True:
         s = input('Start server in debug mode? (y/n)? ')
-        if s[0] == 'y' or s[0] == 'Y':
+        if len(s) == 0:
+            pass
+        elif s[0] == 'y' or s[0] == 'Y':
             debug = True
             break
         elif s[0] == 'n' or s[0] == 'N':
@@ -128,7 +132,9 @@ name1, name 1, name1 , - are not the same''' + Style.RESET_ALL)
     ss = input('Is the data correct? (y/n)? ')
     ss = ss.strip()
     print()
-    if ss[0] == 'y' or ss[0] == 'Y':
+    if len(s) == 0:
+        pass
+    elif ss[0] == 'y' or ss[0] == 'Y':
         break
 
 while True:
@@ -145,7 +151,9 @@ name1, name 1, name1 , - are not the same''' + Style.RESET_ALL)
     ss = input('Is the data correct? (y/n)? ')
     ss = ss.strip()
     print()
-    if ss[0] == 'y' or ss[0] == 'Y':
+    if len(s) == 0:
+        pass
+    elif ss[0] == 'y' or ss[0] == 'Y':
         break
 
 while True:
@@ -162,7 +170,9 @@ name1, name 1, name1 , - are not the same''' + Style.RESET_ALL)
     ss = input('Is the data correct? (y/n)? ')
     ss = ss.strip()
     print()
-    if ss[0] == 'y' or ss[0] == 'Y':
+    if len(s) == 0:
+        pass
+    elif ss[0] == 'y' or ss[0] == 'Y':
         break
 
 

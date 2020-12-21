@@ -109,9 +109,9 @@ debug = {debug}
 
     ss = input('Is the data correct? (y/n)? ')
     ss = ss.strip()
+    print()
     if ss[0] == 'y' or ss[0] == 'Y':
         break
-    print()
 
 while True:
     print('''Enter usernames and their passwords. 
@@ -127,9 +127,9 @@ name1, name 1, name1 , - are not the same''' + Style.RESET_ALL)
     print(f'You entered: {user_logins}')
     ss = input('Is the data correct? (y/n)? ')
     ss = ss.strip()
+    print()
     if ss[0] == 'y' or ss[0] == 'Y':
         break
-    print()
 
 while True:
     print('''Enter administrator account for this server. 
@@ -144,9 +144,9 @@ name1, name 1, name1 , - are not the same''' + Style.RESET_ALL)
     print(f'You entered: {admin_logins}')
     ss = input('Is the data correct? (y/n)? ')
     ss = ss.strip()
+    print()
     if ss[0] == 'y' or ss[0] == 'Y':
         break
-    print()
 
 while True:
     print('''Enter the names of the databases. 
@@ -161,9 +161,9 @@ name1, name 1, name1 , - are not the same''' + Style.RESET_ALL)
     print(f'You entered: {databases}')
     ss = input('Is the data correct? (y/n)? ')
     ss = ss.strip()
+    print()
     if ss[0] == 'y' or ss[0] == 'Y':
         break
-    print()
 
 
 if __name__ == '__main__':

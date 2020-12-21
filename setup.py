@@ -68,4 +68,4 @@ except:
 from sys import argv
 
 if '--only-install' not in argv:
-    import output.docker_setup
+    import output.setup

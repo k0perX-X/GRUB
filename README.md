@@ -67,7 +67,7 @@ Run the commands:
 
 ```shell
 $ cd /path/to/the/data/folder
-$ python3 docker_setup.py
+$ python3 setup.py
 ```
 
 #### 5. Using

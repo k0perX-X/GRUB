@@ -61,7 +61,16 @@ Command arguments explanation:
 k0per/grub:alpine (k0per/grub:ubuntu)     — target image (alpine or ubuntu) 
 ``` 
 
-#### 4. Using
+### 4. Setup
+
+Run the commands:
+
+```shell
+$ cd /path/to/the/data/folder
+$ python3 docker_setup.py
+```
+
+#### 5. Using
 
 Start command:
 
@@ -91,19 +100,17 @@ Run command:
 $ git pull https://github.com/k0perX-X/GRUB.git
 ```
 
-#### 2. Installing python packages
+#### 2. Setting up
+
+If you want you can organize a virtual environment before setup.
 
 Run command: 
 
 ```shell
-$ sudo pip3 install flask requests pycryptodome   
+$ python3 setup.py
 ```
 
-#### 3. Setting up
-
-Copy output/encrypt keys.py from another server or generate a new one with output/encrypt_keys_generator.py.
-
-#### 4. Using
+#### 3. Using
 
 Run commands: 
 

@@ -192,10 +192,11 @@ else:
     f = open('output/database.py', 'w', encoding='utf32')
 f.write('{')
 for data in databases:
-    if data.find("'") == -1:
-        f.write(f"'{data}': {{}}, ")
-    else:
-        f.write(f'"{data}": {{}}, ')
+    if data != '':
+        if data.find("'") == -1:
+            f.write(f"'{data}': {{}}, ")
+        else:
+            f.write(f'"{data}": {{}}, ')
 f.write('}')
 f.close()
 

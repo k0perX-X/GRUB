@@ -127,9 +127,10 @@ while True:
     s = input()
     user_logins = {}
     for ss in s.split(', '):
-        if ss.find(': ') != -1:
-            ss = ss.split(': ')
-            user_logins[ss[0]] = md5(ss[1].encode('utf32')).hexdigest()
+        if ss != '':
+            if ss.find(': ') != -1:
+                ss = ss.split(': ')
+                user_logins[ss[0]] = md5(ss[1].encode('utf32')).hexdigest()
     print(f'You entered: {user_logins}')
     ss = input('Is the data correct? (y/n)? ')
     ss = ss.strip()
@@ -150,7 +151,8 @@ while True:
     s = input()
     admin_logins = []
     for ss in s.split(', '):
-        admin_logins.append(ss)
+        if ss != '':
+            admin_logins.append(ss)
     print(f'You entered: {admin_logins}')
     ss = input('Is the data correct? (y/n)? ')
     ss = ss.strip()
@@ -171,7 +173,8 @@ while True:
     s = input()
     databases = []
     for ss in s.split(', '):
-        databases.append(ss)
+        if ss != '':
+            databases.append(ss)
     print(f'You entered: {databases}')
     ss = input('Is the data correct? (y/n)? ')
     ss = ss.strip()

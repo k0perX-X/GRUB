@@ -63,15 +63,14 @@ k0per/grub:alpine (k0per/grub:ubuntu)     — target image (alpine or ubuntu)
 
 ### 4. Setup
 
-If this is your first server on the network, run the commands:
+* If this is not your first server on the network, copy the files from 
+`/path/to/the/data/folder` of the first server to that server and run commands:
+* If this is your first server then just run the commands:
 
 ```shell
 $ cd /path/to/the/data/folder
 $ python3 setup.py
 ```
-
-If this is not your first server on the network, copy the files 
-from `/path/to/the/data/folder` of the first server to that server.
 
 #### 5. Using
 

@@ -135,7 +135,7 @@ User requests use a user authorization system, System requests use a data encryp
 
 ### User requests
 
-All json requests contain "login" and "password". The password is transmitted in md5 hash format (utf8).
+All json requests contain "login" and "password". The password is transmitted in md5 hash format (utf32).
 
 #### Query data from the database
 

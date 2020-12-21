@@ -138,6 +138,7 @@ while True:
         pass
     elif ss[0] == 'y' or ss[0] == 'Y':
         break
+print()
 
 while True:
     print('Enter administrator account for this server.\n'
@@ -158,6 +159,7 @@ while True:
         pass
     elif ss[0] == 'y' or ss[0] == 'Y':
         break
+print()
 
 while True:
     print('Enter the names of the databases.\n'
@@ -178,6 +180,7 @@ while True:
         pass
     elif ss[0] == 'y' or ss[0] == 'Y':
         break
+print()
 
 if __name__ == '__main__':
     f = open('config.py', 'w', encoding='utf8')

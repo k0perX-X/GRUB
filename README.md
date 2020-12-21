@@ -106,6 +106,10 @@ $ git pull https://github.com/k0perX-X/GRUB.git
 
 If you want you can organize a virtual environment before setup.
 
+* If this is not your first server on the network, copy the files from 
+`output/` of the first server to that server and run command:
+* If this is your first server then just run the command:
+
 Run command: 
 
 ```shell

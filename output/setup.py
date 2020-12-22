@@ -78,11 +78,13 @@ while True:
                         text[i] = f"start_leader = '{start_leader}'"
                     elif text[i].find('login') != -1:
                         text[i] = f"login = '{login}'"
+                text = '\n'.join(text)
+                print('\nYour edited config file:\n' + text)
                 if __name__ == '__main__':
                     f = open('config.py', 'w', encoding='utf8')
                 else:
                     f = open('output/config.py', 'w', encoding='utf8')
-                f.write('\n'.join(text))
+                f.write(text)
                 f.close()
                 exit()
                 break

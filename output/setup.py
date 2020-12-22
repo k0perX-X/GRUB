@@ -60,7 +60,7 @@ while True:
             print(Fore.RED + 'Before running setup.py, copy the files from the first server.' + Style.RESET_ALL)
             exit()
         while True:
-            start_leader = input('Enter the ip (url) of the server already on the network: ')
+            start_leader = input('Enter the ip (url without http:// or https://) of the server already on the network: ')
             if login.find("'") != -1:
                 print("Please enter a name without the symbol '")
             else:
@@ -88,32 +88,30 @@ while True:
                 break
         print()
 
-    tf = True
-    while tf:
+    while True:
         base_cycle_time = input('Enter base cycle time (must be common to one network) (default 1 second): ')
         if base_cycle_time == '':
             base_cycle_time = 1
-            tf = False
+            break
         else:
             try:
                 base_cycle_time = float(base_cycle_time)
-                tf = False
+                break
             except:
                 pass
     print()
 
-    tf = True
-    while tf:
+    while True:
         multiplier_update_cycle_time = input(
             'Enter the number of cycles after which the cycle time will be updated '
             '(must be common to one network) (default 100): ')
         if multiplier_update_cycle_time == '':
             multiplier_update_cycle_time = 100
-            tf = False
+            break
         else:
             try:
                 multiplier_update_cycle_time = int(multiplier_update_cycle_time)
-                tf = False
+                break
             except:
                 pass
     print()

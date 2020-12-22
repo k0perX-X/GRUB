@@ -42,6 +42,7 @@ f = open('output/admin_logins.py', 'r', encoding='utf32')
 admin_logins = eval(f.read())
 f.close()
 
+
 if not debug:
     urllib3.disable_warnings()  # отключает уведомление о не верифицированном ssl
 

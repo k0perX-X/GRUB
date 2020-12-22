@@ -56,7 +56,7 @@ while True:
             path = 'config.py'
         else:
             path = 'output/config.py'
-        if not os.path.exists('output/encrypt_keys.py'):
+        if not os.path.exists(path):
             print(Fore.RED + 'Before running setup.py, copy the files from the first server.' + Style.RESET_ALL)
             exit()
         while True:

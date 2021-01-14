@@ -70,14 +70,12 @@ try:
 except:
     lose_import = True
     pip.main(['install', 'colorama'])
-    from colorama import Fore, Back, Style
 
 try:
     from hashlib import md5
 except:
     lose_import = True
     pip.main(['install', 'hashlib'])
-    from hashlib import md5
 
 try:
     from Crypto.Cipher import DES

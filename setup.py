@@ -65,25 +65,6 @@ except:
     lose_import = True
     pip.main(['install', 'urllib3'])
 
-try:
-    from colorama import Fore, Back, Style
-except:
-    lose_import = True
-    pip.main(['install', 'colorama'])
-
-try:
-    from hashlib import md5
-except:
-    lose_import = True
-    pip.main(['install', 'hashlib'])
-
-try:
-    from Crypto.Cipher import DES
-except:
-    lose_import = True
-    pip.main(['install', 'pycryptodome'])
-    pip.main(['install', 'pycryptodomex'])
-
 from sys import argv
 
 if '--only-install' not in argv:

@@ -1,9 +1,13 @@
 import os.path
 
-if not os.path.exists('output/encrypt_keys.py'):
-    print("""The file output/encrypt keys.py is missing.
-If this is your first server on the network, set up your server with setup.py.
-If this is not your first server on the network, then copy the files from your other server.""")
+if not os.path.exists('output/encrypt_keys.py') or not os.path.exists('output/admin_logins.py') \
+        or not os.path.exists('output/config.py') or not os.path.exists('output/encrypt_keys.py') \
+        or (not os.path.exists('output/database.py') and not os.path.exists('output/database_backup.py'))\
+        or (not os.path.exists('output/user_logins.py') and not os.path.exists('output/user_logins_backup.py')):
+    print("One or more files needed to run are missing, please check the output/ folder.\n"
+          "If this is your first server on the network, set up your server with setup.py.\n"
+          "If this is not your first server on the network, then copy the files from your "
+          "other server and run setup.py.")
     exit()
 
 from flask import Flask, request
@@ -18,8 +22,6 @@ from random import randint, choice
 import timeset
 from threading import Timer, Thread
 import urllib3
-
-# TODO: Перепроверить как работает изменение cycle_time при большом разрыве пингов серверов
 
 try:
     f = open('output/user_logins.py', 'r', encoding='utf32')
@@ -480,7 +482,7 @@ def add():
     # преобразование json запроса
     try:
         r = json.loads(request.data)
-    except Exception as e:
+    except Exception:
         return {"status": "error", "type error": "json recognition"}
 
     # Проверка целостности запроса
@@ -537,18 +539,19 @@ def delete():
 def data():
     # {
     # 	'login'
-    # 	'password' md5
+    # 	'password' md5,
+    #   'database name'
     # }
     # преобразование json запроса
     try:
         r = json.loads(request.data)
-    except Exception as e:
+    except Exception:
         return {"status": "error", "type error": "json recognition"}
 
     # Проверка целостности запроса
-    if 'login' not in r or 'password' not in r:
+    if 'login' not in r or 'password' not in r or 'database name' not in r:
         return {"status": "error", "type error": 'json is not full'}
-    if type(r['login']) != str or type(r['password']) != str:
+    if type(r['login']) != str or type(r['password']) != str or type(r['database name']) != str:
         return {"status": "error", "type error": 'json is not full'}
 
     # аутентификация
@@ -556,8 +559,10 @@ def data():
         return {"status": "error", "type error": "wrong login/password"}
     if r['password'] != user_logins[r['login']]:
         return {"status": "error", "type error": "wrong login/password"}
+    if r['database'] not in database:
+        return {"status": "error", "type error": 'unknown database'}
 
-    return database
+    return {'status': 'ok', 'data': database[r['database name']]}
 
 
 @app.route('/add_user', methods=['POST'])
@@ -573,7 +578,7 @@ def add_user():
     # преобразование json запроса
     try:
         r = json.loads(request.data)
-    except Exception as e:
+    except Exception:
         return {"status": "error", "type error": "json recognition"}
 
     # Проверка целостности запроса

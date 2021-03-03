@@ -159,27 +159,27 @@ Request:
 ```json
 {
     "login": "username",
-    "password": "md5 hash password"
+    "password": "md5 hash password",
+    "database": "name of database"
 }
 ```
 
-Answer: 
+Answers: 
 
 ```json
 {
-    "name of databese1": 
-    {
-        "key1": "value1",
-        "key2": "value2",
-        ...
-    },
-    "name of databese2":
+    "status": "ok",
+    "data": 
     {
         "key1": "value1",
         "key2": "value2",
         ...
     }
 }
+{"status": "error", "type error": "json recognition"}
+{"status": "error", "type error": "json is not full"}
+{"status": "error", "type error": "unknown database"}
+{"status": "error", "type error": "wrong login/password"}
 ```
 
 #### Database add query
@@ -191,7 +191,7 @@ Request:
 {
     "login": "username",
     "password": "md5 hash password",
-    "database": "name of databese",
+    "database": "name of database",
     "values":
     {
         "key1": "value1",
@@ -204,6 +204,7 @@ Request:
 Answers: 
 
 ```json
+{"status": "error", "type error": "json recognition"}
 {"status": "error", "type error": "json is not full"}
 {"status": "error", "type error": "unknown database"}
 {"status": "error", "type error": "wrong login/password"}
@@ -233,6 +234,7 @@ Request:
 Answers: 
 
 ```json
+{"status": "error", "type error": "json recognition"}
 {"status": "error", "type error": "json is not full"}
 {"status": "error", "type error": "unknown database"}
 {"status": "error", "type error": "wrong login/password"}

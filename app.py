@@ -540,7 +540,7 @@ def data():
     # {
     # 	'login'
     # 	'password' md5,
-    #   'database name'
+    #   'database'
     # }
     # преобразование json запроса
     try:
@@ -549,9 +549,9 @@ def data():
         return {"status": "error", "type error": "json recognition"}
 
     # Проверка целостности запроса
-    if 'login' not in r or 'password' not in r or 'database name' not in r:
+    if 'login' not in r or 'password' not in r or 'database' not in r:
         return {"status": "error", "type error": 'json is not full'}
-    if type(r['login']) != str or type(r['password']) != str or type(r['database name']) != str:
+    if type(r['login']) != str or type(r['password']) != str or type(r['database']) != str:
         return {"status": "error", "type error": 'json is not full'}
 
     # аутентификация
@@ -562,7 +562,7 @@ def data():
     if r['database'] not in database:
         return {"status": "error", "type error": 'unknown database'}
 
-    return {'status': 'ok', 'data': database[r['database name']]}
+    return {'status': 'ok', 'data': database[r['database']]}
 
 
 @app.route('/add_user', methods=['POST'])
